@@ -4,21 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "migrate": "node scripts/migrate.mjs",
+    "migrate": "node --env-file=.env.local --env-file=.env scripts/migrate.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "next": "14.2.30",
+    "next": "16.2.11",
     "postgres": "3.4.7",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@types/node": "20.17.30",
     "@types/react": "18.3.20",
     "@types/react-dom": "18.3.7",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.2.11",
     "typescript": "5.8.3"
   }
 }
