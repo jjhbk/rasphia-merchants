@@ -4,6 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { InterestForm } from "./components/interest-form";
 
 type Scenario = { tag: string; user: string; note: string; business: string; body: string; chips: string[]; alternative: string; action: string; followup: string; confirmation: string };
+type Market = "IN" | "US" | "GB";
+
+const marketForLocale = (locale: string): Market => locale.toLowerCase().includes("-us") ? "US" : locale.toLowerCase().includes("-gb") ? "GB" : "IN";
+const marketCopy = (scenario: Scenario, market: Market): Scenario => {
+  if (market === "IN") return scenario;
+  const isUS = market === "US";
+  const money = (value: number) => new Intl.NumberFormat(isUS ? "en-US" : "en-GB", { style: "currency", currency: isUS ? "USD" : "GBP", maximumFractionDigits: 0 }).format(Math.round(value * (isUS ? 0.012 : 0.0095)));
+  const replace = (text: string) => text
+    .replace(/₹1,850/g, money(1850)).replace(/₹2,400/g, money(2400)).replace(/₹2,800/g, money(2800)).replace(/₹1,200–1,400/g, `${money(1200)}–${money(1400)}`).replace(/₹800/g, money(800)).replace(/₹4,500/g, money(4500)).replace(/₹7,200/g, money(7200)).replace(/₹6,500/g, money(6500)).replace(/₹12,000/g, money(12000)).replace(/₹2,000/g, money(2000)).replace(/₹3,000/g, money(3000)).replace(/₹8,000/g, money(8000))
+    .replace(/Banjara Hills/g, isUS ? "Brooklyn Heights" : "Clapham").replace(/Kondapur/g, isUS ? "Austin" : "Richmond").replace(/Madhapur/g, isUS ? "Cambridge" : "Islington").replace(/Pedana/g, isUS ? "Portland" : "Bristol");
+  return Object.fromEntries(Object.entries(scenario).map(([key, value]) => [key, typeof value === "string" ? replace(value) : Array.isArray(value) ? value.map((item) => typeof item === "string" ? replace(item) : item) : value])) as Scenario;
+};
 
 const scenarios: Scenario[] = [
   { tag: "SALONS", user: "My mom's visiting this weekend and I want to treat her. Need a salon genuinely good with thick, greying curly hair — gentle with sensitive scalps, somewhere calm, not a loud chain. Around ₹2,000 total for both of us, Saturday morning, near Banjara Hills.", note: "Matched on 6 of your constraints", business: "Meera's Curl Studio", body: " is the strongest fit — 8 years specializing in curly and textured hair, including silver-strand colour care, with an in-house herbal scalp ritual for sensitive scalps. A quiet 4-chair studio, 1.2 km from Banjara Hills. Their mother–daughter Saturday 10:30 slot is open: a curl shaping cut plus a gentle scalp treatment comes to ₹1,850 for both.", chips: ["curl + grey-hair care", "sensitive-scalp safe", "quiet 4-chair studio", "1.2 km · Banjara Hills", "sat 10:30 · two seats", "₹1,850 for both"], alternative: "Backup: Root & Ritual (2.8 km) has 11:15 open, but tends to be busier on weekends.", action: "Book Sat 10:30 for two →", followup: "Perfect — book it, and mention her scalp is sensitive.", confirmation: "Booked ✓ Saturday 10:30, two seats at Meera's Curl Studio. I've added a note about your mom's sensitive scalp, and your payment link for ₹1,850 is ready." },
@@ -19,9 +31,17 @@ function ChatDemo() {
   const [replayKey, setReplayKey] = useState(0);
   const [visibleCount, setVisibleCount] = useState(0);
   const [typingIndex, setTypingIndex] = useState<number | null>(null);
+  const [market, setMarket] = useState<Market>("IN");
   const cardRef = useRef<HTMLDivElement>(null);
   const startedRef = useRef(false);
-  const scenario = scenarios[scenarioIndex];
+  const scenario = marketCopy(scenarios[scenarioIndex], market);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setMarket(marketForLocale(window.navigator.language));
+      setReplayKey((key) => key + 1);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   useEffect(() => {
     if (!startedRef.current) return;
     setVisibleCount(0); setTypingIndex(null);
