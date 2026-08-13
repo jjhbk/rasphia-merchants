@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rasphia — Be the answer inside Claude and ChatGPT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#142A33;
+    --ink-soft:#3C545E;
+    --mist:#F4F6F2;
+    --white:#FFFFFF;
+    --marigold:#F0A32F;
+    --marigold-deep:#D98A10;
+    --leaf:#33705F;
+    --leaf-soft:#E4EEE9;
+    --line:#D9DED6;
+    --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Schibsted Grotesk',sans-serif;
+    background:var(--mist);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:'Instrument Serif',serif;font-weight:400}
+  .mono{font-family:'Spline Sans Mono',monospace}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb, var(--mist) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .wordmark{font-family:'Instrument Serif',serif;font-size:1.35rem;letter-spacing:.01em;text-decoration:none}
+  .wordmark em{color:var(--marigold-deep);font-style:italic}
+  .btn{
+    display:inline-block;text-decoration:none;font-weight:600;font-size:.95rem;
+    padding:12px 24px;border-radius:999px;border:1.5px solid var(--ink);
+    transition:transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .btn:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+  .btn-solid{background:var(--ink);color:var(--white)}
+  .btn-solid:hover{background:var(--marigold);border-color:var(--marigold);color:var(--ink);transform:translateY(-1px)}
+  .btn-gold{background:var(--marigold);border-color:var(--marigold);color:var(--ink)}
+  .btn-gold:hover{background:var(--ink);border-color:var(--ink);color:var(--white);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--white)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:72px 0 88px}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .eyebrow{
+    font-family:'Spline Sans Mono',monospace;font-size:.78rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--leaf);margin-bottom:20px;display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1.5px;background:var(--leaf);display:inline-block}
+  h1{
+    font-family:'Instrument Serif',serif;font-weight:400;
+    font-size:clamp(2.6rem,5.2vw,4.1rem);line-height:1.06;letter-spacing:-.01em;
+  }
+  h1 .strike{position:relative;white-space:nowrap}
+  h1 .strike::after{
+    content:"";position:absolute;left:-2%;right:-2%;top:54%;height:3px;
+    background:var(--marigold);transform:rotate(-1.5deg);border-radius:2px;
+  }
+  h1 em{font-style:italic;color:var(--marigold-deep)}
+  .hero p.lede{margin:24px 0 34px;font-size:1.13rem;color:var(--ink-soft);max-width:34rem}
+  .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .hero-note{font-size:.85rem;color:var(--ink-soft);margin-top:16px}
+
+  /* ---------- chat card (signature) ---------- */
+  .chat-card{
+    background:var(--white);border:1px solid var(--line);border-radius:20px;
+    box-shadow:0 24px 60px -24px rgba(20,42,51,.25);
+    overflow:hidden;
+  }
+  .chat-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .chat-tabs{display:flex;gap:6px}
+  .chat-tab{
+    font-family:'Spline Sans Mono',monospace;font-size:.72rem;letter-spacing:.05em;
+    border:1px solid var(--line);background:var(--white);color:var(--ink-soft);
+    border-radius:999px;padding:6px 14px;cursor:pointer;transition:all .15s ease;
+  }
+  .chat-tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--white)}
+  .chat-tab:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+  .chat-live{display:flex;align-items:center;gap:8px}
+  .chat-dot{width:8px;height:8px;border-radius:50%;background:var(--leaf)}
+  .chat-live span{font-family:'Spline Sans Mono',monospace;font-size:.68rem;letter-spacing:.08em;color:var(--ink-soft)}
+  .chat-input{
+    display:flex;align-items:center;gap:10px;margin:0 14px 16px;
+    border:1px solid var(--line);border-radius:999px;padding:11px 18px;
+    color:var(--ink-soft);font-size:.9rem;background:var(--mist);
+  }
+  .chat-input .plus{font-weight:600;color:var(--ink-soft)}
+  .chat-input .send{
+    margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--white);
+    display:flex;align-items:center;justify-content:center;font-size:.85rem;
+  }
+  .chat-body{padding:22px 18px 18px;display:flex;flex-direction:column;gap:16px;min-height:520px}
+  .msg{max-width:88%;opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+  .msg.show{opacity:1;transform:none}
+  .msg-label{font-family:'Spline Sans Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .bubble{padding:14px 16px;border-radius:14px;font-size:.95rem;line-height:1.55}
+  .msg.user{align-self:flex-end;text-align:left}
+  .msg.user .bubble{background:var(--ink);color:var(--mist);border-bottom-right-radius:4px}
+  .msg.ai{align-self:flex-start}
+  .msg.ai .bubble{background:var(--leaf-soft);border-bottom-left-radius:4px}
+  .biz{font-weight:700}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{
+    font-family:'Spline Sans Mono',monospace;font-size:.68rem;letter-spacing:.03em;
+    background:var(--white);border:1px solid var(--leaf);color:var(--leaf);
+    padding:4px 9px;border-radius:999px;
+  }
+  .book-row{margin-top:12px;display:flex;gap:8px;align-items:center}
+  .book-btn{
+    font-size:.8rem;font-weight:600;background:var(--marigold);color:var(--ink);
+    border:none;border-radius:999px;padding:8px 16px;cursor:default;
+  }
+  .typing{display:inline-flex;gap:4px;padding:12px 16px;background:var(--leaf-soft);border-radius:14px;border-bottom-left-radius:4px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--leaf);animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}
+  .typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+  /* ---- platform skins: the card re-themes to feel like the actual app ---- */
+  .chat-card{transition:background .3s ease}
+  .chat-card .msg.ai .bubble{transition:background .3s ease,color .3s ease}
+  /* Claude skin: warm ivory, serif responses, terracotta actions */
+  .skin-claude .chat-head,
+  .skin-claude .chat-body,
+  .skin-claude .chat-input-wrap{background:#F7F2E9}
+  .skin-claude .chat-head{border-bottom-color:#E6DCC9}
+  .skin-claude .msg.user .bubble{background:#EADFCB;color:#3D3929;border-bottom-right-radius:4px}
+  .skin-claude .msg.ai .bubble{background:transparent;padding:2px 0;color:#3D3929;font-family:Georgia,'Times New Roman',serif;font-size:.97rem}
+  .skin-claude .msg-label{color:#8A7F6A}
+  .skin-claude .chip{background:#FFFDF9;border-color:#C15F3C;color:#B14E2B}
+  .skin-claude .book-btn{background:#C15F3C;color:#FFF}
+  .skin-claude .alt-line{color:#8A7F6A}
+  .skin-claude .typing{background:#EADFCB}
+  .skin-claude .typing i{background:#C15F3C}
+  .skin-claude .chat-input{background:#FFFDF9;border-color:#E0D6C2;color:#8A7F6A}
+  .skin-claude .chat-input .send{background:#C15F3C}
+  .skin-claude .replay{border-color:#E0D6C2;color:#8A7F6A}
+  /* ChatGPT skin: clean white, neutral grays, green actions */
+  .skin-gpt .chat-head,
+  .skin-gpt .chat-body,
+  .skin-gpt .chat-input-wrap{background:#FFFFFF}
+  .skin-gpt .chat-head{border-bottom-color:#ECECEC}
+  .skin-gpt .msg.user .bubble{background:#F1F1F1;color:#0D0D0D;border-bottom-right-radius:4px}
+  .skin-gpt .msg.ai .bubble{background:transparent;padding:2px 0;color:#0D0D0D;font-size:.95rem}
+  .skin-gpt .msg-label{color:#8E8E8E}
+  .skin-gpt .chip{background:#FFF;border-color:#10A37F;color:#0E8A6C}
+  .skin-gpt .book-btn{background:#10A37F;color:#FFF}
+  .skin-gpt .alt-line{color:#8E8E8E}
+  .skin-gpt .typing{background:#F1F1F1}
+  .skin-gpt .typing i{background:#10A37F}
+  .skin-gpt .chat-input{background:#F4F4F4;border-color:#E5E5E5;color:#8E8E8E}
+  .skin-gpt .chat-input .send{background:#0D0D0D}
+  .skin-gpt .replay{border-color:#ECECEC;color:#8E8E8E}
+  .alt-line{font-size:.82rem;margin-top:10px}
+  .match-note{font-family:'Spline Sans Mono',monospace;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;opacity:.85}
+  .chat-input-wrap{padding:0 0 2px}
+  /* assistant avatar + wordmark row */
+  .ai-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ai-avatar{
+    width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    font-size:.8rem;line-height:1;flex-shrink:0;
+  }
+  .ai-wordmark{font-size:.8rem;font-weight:600}
+  .via-tag{font-family:'Spline Sans Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;opacity:.65}
+  .skin-claude .ai-avatar{background:#C15F3C;color:#FFF}
+  .skin-claude .ai-wordmark{font-family:Georgia,'Times New Roman',serif;color:#3D3929;font-weight:400;font-size:.88rem}
+  .skin-claude .via-tag{color:#8A7F6A}
+  .skin-gpt .ai-avatar{background:#0D0D0D;color:#FFF}
+  .skin-gpt .ai-wordmark{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#0D0D0D;letter-spacing:-.01em}
+  .skin-gpt .via-tag{color:#8E8E8E}
+  .skin-gpt .msg .bubble{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif}
+  /* platform-flavored chat header wordmark */
+  .head-brand{font-size:.9rem;font-weight:600}
+  .skin-claude .head-brand{font-family:Georgia,'Times New Roman',serif;font-weight:400;color:#3D3929}
+  .skin-gpt .head-brand{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#0D0D0D}
+  .replay{
+    align-self:center;margin-top:auto;font-family:'Spline Sans Mono',monospace;font-size:.72rem;
+    letter-spacing:.08em;background:none;border:1px solid var(--line);border-radius:999px;
+    padding:6px 14px;color:var(--ink-soft);cursor:pointer;
+  }
+  .replay:hover{border-color:var(--ink);color:var(--ink)}
+
+  /* ---------- claim strip ---------- */
+  .strip{background:var(--ink);color:var(--mist);padding:20px 0}
+  .strip-inner{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .strip .mono{font-size:.8rem;letter-spacing:.06em;opacity:.92}
+  .strip .mono b{color:var(--marigold);font-weight:500}
+
+  /* ---------- sections ---------- */
+  section{padding:96px 0}
+  .sec-eyebrow{
+    font-family:'Spline Sans Mono',monospace;font-size:.75rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--leaf);margin-bottom:14px;
+  }
+  h2{
+    font-family:'Instrument Serif',serif;font-weight:400;
+    font-size:clamp(1.9rem,3.6vw,2.7rem);line-height:1.12;letter-spacing:-.005em;
+    max-width:30ch;
+  }
+  .sec-sub{margin-top:16px;color:var(--ink-soft);max-width:38rem;font-size:1.05rem}
+
+  /* before / after */
+  .ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:52px;align-items:stretch}
+  .ba-card{border-radius:var(--radius);padding:30px;border:1px solid var(--line);position:relative}
+  .ba-card .tag{
+    font-family:'Spline Sans Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+    display:inline-block;margin-bottom:20px;padding:5px 12px;border-radius:999px;
+  }
+  .ba-before{background:var(--white)}
+  .ba-before .tag{background:var(--mist);color:var(--ink-soft);border:1px solid var(--line)}
+  .ba-after{background:var(--ink);color:var(--mist);border-color:var(--ink)}
+  .ba-after .tag{background:var(--marigold);color:var(--ink)}
+  .listing-name{font-family:'Instrument Serif',serif;font-size:1.4rem;margin-bottom:8px}
+  .flat-lines{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .flat-line{height:10px;border-radius:5px;background:var(--line)}
+  .flat-line.w60{width:60%}.flat-line.w40{width:40%}.flat-line.w75{width:75%}
+  .ba-before .muted{color:var(--ink-soft);font-size:.92rem;margin-top:18px}
+  .rich-rows{display:flex;flex-direction:column;gap:12px;margin-top:14px;font-size:.93rem}
+  .rich-row{display:flex;gap:10px;align-items:baseline}
+  .rich-row .k{font-family:'Spline Sans Mono',monospace;font-size:.7rem;letter-spacing:.06em;color:var(--marigold);min-width:96px;text-transform:uppercase}
+  .ba-after .muted{color:#B9C6C4;font-size:.92rem;margin-top:18px}
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:52px}
+  .step{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px}
+  .step .num{
+    font-family:'Instrument Serif',serif;font-size:2.4rem;color:var(--marigold-deep);
+    line-height:1;margin-bottom:16px;
+  }
+  .step h3{font-size:1.1rem;font-weight:700;margin-bottom:10px}
+  .step p{color:var(--ink-soft);font-size:.95rem}
+
+  /* who it's for */
+  .seg-rows{margin-top:48px;border-top:1px solid var(--line)}
+  .seg-row{
+    display:grid;grid-template-columns:270px 1fr;gap:24px;padding:22px 4px;
+    border-bottom:1px solid var(--line);align-items:baseline;
+    transition:background .15s ease;
+  }
+  .seg-row:hover{background:var(--white)}
+  .seg-row h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:1.3rem}
+  .seg-row p{color:var(--ink-soft);font-size:.95rem}
+  .seg-row p em{color:var(--leaf);font-style:normal;font-weight:600}
+
+  /* why now */
+  .now{background:var(--ink);color:var(--mist)}
+  .now h2{color:var(--white)}
+  .now .sec-sub{color:#B9C6C4}
+  .now-points{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:52px}
+  .now-point{border-top:2px solid var(--marigold);padding-top:18px}
+  .now-point h3{font-size:1.05rem;font-weight:700;margin-bottom:10px;color:var(--white)}
+  .now-point p{font-size:.94rem;color:#B9C6C4}
+
+  /* final cta */
+  .final{text-align:center;padding:110px 0}
+  .final h2{margin:0 auto}
+  .final .sec-sub{margin-left:auto;margin-right:auto}
+  .final .hero-ctas{justify-content:center;margin-top:36px}
+
+  footer{border-top:1px solid var(--line);padding:28px 0;font-size:.85rem;color:var(--ink-soft)}
+  .foot-inner{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    .msg{opacity:1;transform:none}
+  }
+  @media (max-width:900px){
+    .hero{padding:48px 0 64px}
+    .hero-grid{grid-template-columns:1fr;gap:40px}
+    .ba-grid,.steps,.now-points{grid-template-columns:1fr}
+    .seg-row{grid-template-columns:1fr;gap:6px}
+    section{padding:72px 0}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="wordmark" href="#">rasph<em>ia</em></a>
+    <a class="btn btn-solid" href="#start">Talk to us</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Rasphia · Native to Claude &amp; ChatGPT</p>
+      <h1>Your customers aren't <span class="strike">searching</span>.<br>They're <em>asking</em>.</h1>
+      <p class="lede">Millions of people now ask Claude and ChatGPT for exactly what you offer — and get one confident recommendation back, not ten links. Rasphia makes your business that answer, with booking and payment completing right inside the same chat.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="#start">Get your business AI-ready</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
+      <p class="hero-note">No ads to buy. No app to manage. One conversation to get started.</p>
+    </div>
+
+    <div class="chat-card skin-claude" id="chatCard" aria-label="Example of Claude or ChatGPT recommending a local business via Rasphia">
+      <div class="chat-head">
+        <div class="chat-tabs" role="tablist" aria-label="Choose assistant">
+          <button class="chat-tab" role="tab" aria-selected="true" data-assistant="Claude" type="button">Claude</button>
+          <button class="chat-tab" role="tab" aria-selected="false" data-assistant="ChatGPT" type="button">ChatGPT</button>
+        </div>
+        <div class="chat-live"><span class="head-brand" id="headBrand">Claude</span><span class="chat-dot"></span><span id="vertTag">RASPHIA · SALONS</span></div>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div id="chatMsgs" style="display:flex;flex-direction:column;gap:16px;flex:1"></div>
+        <button class="replay" id="replayBtn" type="button">↺ replay</button>
+      </div>
+      <div class="chat-input-wrap">
+        <div class="chat-input" aria-hidden="true">
+          <span class="plus">＋</span><span>Ask anything…</span><span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="wrap strip-inner">
+    <span class="mono">AI-assisted local search: <b>up ~7× in one year</b></span>
+    <span class="mono">Local businesses AI ever recommends: <b>barely 1 in 100</b></span>
+    <span class="mono">Placement you can buy inside the answer: <b>none — it's earned</b></span>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">The problem</p>
+    <h2 class="reveal">Everything that makes customers choose you is invisible to AI.</h2>
+    <p class="sec-sub reveal">An AI assistant knows your name and a pin on a map. It doesn't know you're brilliant with bridal makeup for mature skin, that your Tuesday batch is beginner-friendly, or that your pottery uses clay from your own village. So when someone asks the exact question you're the perfect answer to — it recommends someone else.</p>
+
+    <div class="ba-grid">
+      <div class="ba-card ba-before reveal">
+        <span class="tag">What AI sees today</span>
+        <div class="listing-name">Meera's Salon</div>
+        <div class="flat-lines">
+          <div class="flat-line w60"></div>
+          <div class="flat-line w40"></div>
+          <div class="flat-line w75"></div>
+        </div>
+        <p class="muted">A name. A category. A star rating. Nothing to reason with — nothing worth recommending.</p>
+      </div>
+      <div class="ba-card ba-after reveal">
+        <span class="tag">What AI sees with us</span>
+        <div class="listing-name">Meera's Curl Studio</div>
+        <div class="rich-rows">
+          <div class="rich-row"><span class="k">Specialty</span><span>Curly &amp; textured hair · DevaCut trained · 8 yrs</span></div>
+          <div class="rich-row"><span class="k">Perfect for</span><span>First-time curl cuts, transition from straightening</span></div>
+          <div class="rich-row"><span class="k">Pricing</span><span>₹1,200–1,400 cut · consultation included</span></div>
+          <div class="rich-row"><span class="k">Available</span><span>Live slots — bookable inside the chat</span></div>
+        </div>
+        <p class="muted">The depth a loyal customer would use to recommend you — readable, reasonable, bookable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="offerings" style="padding-top:0">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">Core offerings</p>
+    <h2 class="reveal">Three layers. One continuous flow.</h2>
+    <p class="sec-sub reveal">From the moment someone asks, to the moment they've paid — Rasphia covers the entire journey inside the conversation.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <p class="sec-eyebrow" style="margin-bottom:10px">01 · Discover</p>
+        <h3>AI Discoverability</h3>
+        <p>Context-rich, AI-readable profiles that let Claude and ChatGPT understand what makes you distinct — so you're matched to real intent, not keywords, and recommended with the reasoning that closes the choice.</p>
+      </div>
+      <div class="step reveal">
+        <p class="sec-eyebrow" style="margin-bottom:10px">02 · Act</p>
+        <h3>AI Booking &amp; Ordering</h3>
+        <p>Live availability and ordering, callable right inside the chat. Appointments, orders, customizations, special notes — captured in the conversation and delivered straight to you, with nothing lost in between.</p>
+      </div>
+      <div class="step reveal">
+        <p class="sec-eyebrow" style="margin-bottom:10px">03 · Pay</p>
+        <h3>AI-Native Payments</h3>
+        <p>Payment completes in the same flow — secure UPI and card links generated in-conversation, confirmed back into the chat. No checkout page to rebuild, no payment infrastructure for you to carry.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="padding-top:0">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">How it works</p>
+    <h2 class="reveal">One conversation. Then you're the answer.</h2>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="num">1</div>
+        <h3>We capture what makes you distinct</h3>
+        <p>One sitting — in person or on a call. We ask the questions a smart friend would ask before recommending you: your specialties, your style, who you're perfect for, what you charge, when you're free.</p>
+      </div>
+      <div class="step reveal">
+        <div class="num">2</div>
+        <h3>We build your AI-readable profile</h3>
+        <p>We structure it, connect it, and keep it current — so assistants like Claude and ChatGPT can understand you, trust you, and recommend you. You approve everything before it goes live.</p>
+      </div>
+      <div class="step reveal">
+        <div class="num">3</div>
+        <h3>Conversations become customers</h3>
+        <p>When you're the match, the customer books or buys right inside the chat — recommendation to payment in one flow. You get the booking. They never had to start over on a website.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="who" style="padding-top:0">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">Who this is for</p>
+    <h2 class="reveal">Built for businesses whose value doesn't fit in a keyword.</h2>
+    <div class="seg-rows">
+      <div class="seg-row reveal">
+        <h3>Salons &amp; personal care</h3>
+        <p>"Good with curly hair" beats "salon near me". <em>Your specialty becomes the reason you're chosen.</em></p>
+      </div>
+      <div class="seg-row reveal">
+        <h3>Wellness &amp; fitness studios</h3>
+        <p>Gentle-on-the-knee yoga, beginner batches, injury-aware trainers — matched to the person's actual goal.</p>
+      </div>
+      <div class="seg-row reveal">
+        <h3>Tutors &amp; instructors</h3>
+        <p>Patient with beginners. Great with exam-stressed teens. <em>Teaching style, finally discoverable.</em></p>
+      </div>
+      <div class="seg-row reveal">
+        <h3>Artisans &amp; local brands</h3>
+        <p>Your story and provenance are the product. We make them the reason someone buys — at full price.</p>
+      </div>
+      <div class="seg-row reveal">
+        <h3>Home &amp; repair trades</h3>
+        <p>Verified skill, real work history, honest pricing — trust signals that win jobs word-of-mouth used to.</p>
+      </div>
+      <div class="seg-row reveal">
+        <h3>Event professionals</h3>
+        <p>Photographers, decorators, caterers — taste-driven choices where the right context closes the booking.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="now">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">Why now</p>
+    <h2 class="reveal">The next decade of local discovery is being decided in conversations you're not part of yet.</h2>
+    <div class="now-points">
+      <div class="now-point reveal">
+        <h3>You can't buy your way in</h3>
+        <p>There's no ad slot inside an AI's answer. Recommendations are earned through depth and substance — which means a genuinely good independent can beat a big chain that hasn't shown up.</p>
+      </div>
+      <div class="now-point reveal">
+        <h3>Early trust compounds</h3>
+        <p>The businesses AI assistants learn to rely on now become the defaults later — the same way early movers on maps and reviews owned the last decade of local search.</p>
+      </div>
+      <div class="now-point reveal">
+        <h3>These customers arrive pre-sold</h3>
+        <p>By the time you're recommended, the customer has already said exactly what they want. The AI qualified them, compared for them, convinced them. What reaches you is a buyer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final" id="start">
+  <div class="wrap">
+    <h2 class="reveal">Be the answer, inside Claude and ChatGPT.</h2>
+    <p class="sec-sub reveal">One conversation is all it takes to get started. We'll show you exactly what your business looks like when Claude or ChatGPT recommends it — before you commit to anything.</p>
+    <div class="hero-ctas reveal">
+      <a class="btn btn-gold" href="#">Talk to us</a>
+      <a class="btn btn-ghost" href="#">See a live demo</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span>© 2026 · Rasphia</span>
+    <span class="mono" style="font-size:.75rem;letter-spacing:.06em">CONTEXT-RICH · CONTEXT-AWARE · AI-NATIVE</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var chatMsgs = document.getElementById('chatMsgs');
+  var replay = document.getElementById('replayBtn');
+  var vertTag = document.getElementById('vertTag');
+  var card = document.getElementById('chatCard');
+  var headBrand = document.getElementById('headBrand');
+  var tabs = document.querySelectorAll('.chat-tab');
+  var timers = [];
+  var platform = 'Claude';
+  var current = 0;
+
+  var scenarios = [
+    {
+      tag:'SALONS',
+      user1:"My mom's visiting this weekend and I want to treat her. Need a salon genuinely good with thick, greying curly hair — gentle with sensitive scalps, somewhere calm, not a loud chain. Around ₹2,000 total for both of us, Saturday morning, near Banjara Hills.",
+      note:'Matched on 6 of your constraints',
+      biz:"Meera's Curl Studio",
+      body:" is the strongest fit — 8 years specializing in curly and textured hair, including silver-strand colour care, with an in-house herbal scalp ritual for sensitive scalps. A quiet 4-chair studio, 1.2 km from Banjara Hills. Their mother–daughter Saturday 10:30 slot is open: a curl shaping cut plus a gentle scalp treatment comes to ₹1,850 for both.",
+      chips:['curl + grey-hair care','sensitive-scalp safe','quiet 4-chair studio','1.2 km · Banjara Hills','sat 10:30 · two seats','₹1,850 for both'],
+      alt:'Backup: Root & Ritual (2.8 km) has 11:15 open, but tends to be busier on weekends.',
+      book:'Book Sat 10:30 for two →',
+      user2:'Perfect — book it, and mention her scalp is sensitive.',
+      confirm:"Booked ✓ Saturday 10:30, two seats at Meera's Curl Studio. I've added a note about your mom's sensitive scalp, and your payment link for ₹1,850 is ready."
+    },
+    {
+      tag:'DENTISTS',
+      user1:"My dad needs a crown replaced but he's genuinely anxious about dentists. Need someone patient who explains everything, weekend appointments, EMI on card, near Madhapur — hoping to stay under ₹8,000.",
+      note:'Matched on 5 of your constraints',
+      biz:"Dr. Anaya's Dental Studio",
+      body:" fits best — 12 years in prosthodontics with a practice known for anxious-patient care: numbing-first protocol, every step explained before it happens, no rushed chair time. 900 m from Madhapur metro. A zirconia crown is ₹7,200 with 3-month EMI, and Saturday 9:30 is open.",
+      chips:['anxious-patient care','crowns · prosthodontics','sat 9:30 open','900 m · Madhapur','₹7,200 · EMI available'],
+      alt:'Alternative: Smile Lane (1.6 km) quotes ₹6,500 but books two visits instead of one.',
+      book:'Book Sat 9:30 →',
+      user2:'Book it — and mention he has high blood pressure.',
+      confirm:"Booked ✓ Saturday 9:30 with Dr. Anaya. I've noted your dad's blood pressure on the appointment so they plan anesthesia accordingly, and your EMI payment link is ready."
+    },
+    {
+      tag:'LAWYERS',
+      user1:"I'm freelancing for a US client and need a lawyer to review their contract — someone who actually knows cross-border freelance agreements, fixed fee not hourly, turnaround within 3 days. Remote is fine.",
+      note:'Matched on 4 of your constraints',
+      biz:"Adv. Meher Kapoor",
+      body:" is your match — specializes in tech and freelance contracts, 200+ cross-border agreement reviews for Indian freelancers with US and EU clients. Fixed ₹4,500 per contract review with written notes, 48-hour turnaround, and a Thursday 6 pm video consult is open.",
+      chips:['cross-border contracts','freelancer specialist','fixed ₹4,500','48-hr turnaround','thu 6 pm · video'],
+      alt:'Alternative: LexBridge Partners does firm-level review at ₹12,000 if the deal grows.',
+      book:'Book Thursday 6 pm consult →',
+      user2:'Book the consult and send her the draft contract.',
+      confirm:"Booked ✓ Thursday 6 pm video consult with Adv. Kapoor. A secure upload link for your draft is ready, and your ₹4,500 payment link confirms the review slot."
+    },
+    {
+      tag:'ARTISANS',
+      user1:"Looking for an anniversary gift — something handwoven with a real story behind it, made by a local artisan, under ₹3,000, delivered by Friday, gift-wrapped if possible.",
+      note:'Matched on 5 of your constraints',
+      biz:"Lakshmamma's Loom Collective",
+      body:" in Pedana has it — a hand-blocked Kalamkari stole in natural indigo and madder root dyes, woven by a 14-member women's collective, each piece signed by its maker with a card telling her story. ₹2,400, ships tomorrow, arrives Thursday, gift-wrapped in handmade paper.",
+      chips:['hand-blocked kalamkari','natural dyes','signed by the maker','₹2,400','arrives thursday','gift-wrapped'],
+      alt:'Also lovely: a Pochampally ikat table runner at ₹2,800, arriving Friday.',
+      book:'Order the Kalamkari stole →',
+      user2:'Order it — add a handwritten note saying "Happy 10th."',
+      confirm:'Ordered ✓ The stole ships tomorrow and arrives Thursday, gift-wrapped with your handwritten "Happy 10th" note. Payment link for ₹2,400 is ready.'
+    },
+    {
+      tag:'WELLNESS',
+      user1:"Recovering from a knee injury and want to get back to yoga — needs to be genuinely gentle, small batches, morning before 8 am, and an instructor who actually understands rehab. Near Kondapur.",
+      note:'Matched on 5 of your constraints',
+      biz:"Prana Shala",
+      body:" is the right fit — the lead instructor is certified in therapeutic yoga and has worked with post-injury recovery for 6 years. Batches cap at 6 people, the 6:30 am slot has two seats free, and it's 1.4 km from Kondapur. First class is free so you can check the pace before committing.",
+      chips:['therapeutic yoga cert.','post-injury experience','max 6 per batch','6:30 am · 2 seats','1.4 km · Kondapur','first class free'],
+      alt:'Alternative: Sthira Studio (2.1 km) runs one-on-one rehab sessions at ₹800 each.',
+      book:'Reserve 6:30 am trial class →',
+      user2:'Reserve it — and let them know it\'s my left knee.',
+      confirm:"Reserved ✓ Tomorrow 6:30 am trial at Prana Shala. I've noted the left-knee recovery so the instructor prepares modified poses. No payment needed — first class is free."
+    }
+  ];
+
+  function glyph(){ return platform === 'Claude' ? '✳' : '◎'; }
+
+  function aiRow(){
+    return '<div class="ai-row"><span class="ai-avatar" aria-hidden="true">' + glyph() + '</span>' +
+      '<span class="ai-wordmark">' + platform + '</span><span class="via-tag">via Rasphia</span></div>';
+  }
+
+  function render(s){
+    vertTag.textContent = 'RASPHIA · ' + s.tag;
+    var chips = s.chips.map(function(c){ return '<span class="chip">' + c + '</span>'; }).join('');
+    chatMsgs.innerHTML =
+      '<div class="msg user"><div class="msg-label">You</div><div class="bubble">' + s.user1 + '</div></div>' +
+      '<div class="msg ai" data-typing="true">' + aiRow() +
+        '<div class="bubble"><div class="match-note">' + s.note + '</div>' +
+        '<span class="biz">' + s.biz + '</span>' + s.body +
+        '<div class="chips">' + chips + '</div>' +
+        '<div class="alt-line">' + s.alt + '</div>' +
+        '<div class="book-row"><button class="book-btn" type="button">' + s.book + ' </button></div></div></div>' +
+      '<div class="msg user"><div class="msg-label">You</div><div class="bubble">' + s.user2 + '</div></div>' +
+      '<div class="msg ai" data-typing="true">' + aiRow() + '<div class="bubble">' + s.confirm + '</div></div>';
+  }
+
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+
+  function showTyping(beforeEl){
+    var t = document.createElement('div');
+    t.className = 'typing'; t.setAttribute('data-tmp','1');
+    t.innerHTML = '<i></i><i></i><i></i>';
+    beforeEl.parentNode.insertBefore(t, beforeEl);
+    return t;
+  }
+
+  function play(){
+    clearTimers();
+    render(scenarios[current]);
+    var msgs = Array.prototype.slice.call(chatMsgs.querySelectorAll('.msg'));
+    if (reduced){ msgs.forEach(function(m){ m.classList.add('show'); }); return; }
+    var delay = 500;
+    msgs.forEach(function(m){
+      if (m.getAttribute('data-typing')){
+        timers.push(setTimeout(function(){
+          var t = showTyping(m);
+          timers.push(setTimeout(function(){ t.remove(); m.classList.add('show'); }, 1100));
+        }, delay));
+        delay += 2100;
+      } else {
+        timers.push(setTimeout(function(){ m.classList.add('show'); }, delay));
+        delay += 1000;
+      }
+    });
+    timers.push(setTimeout(function(){
+      current = (current + 1) % scenarios.length;
+      play();
+    }, delay + 4500));
+  }
+
+  var played = false;
+  var io1 = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting && !played){ played = true; play(); }
+    });
+  }, {threshold:.4});
+  io1.observe(card);
+
+  replay.addEventListener('click', function(){ play(); });
+
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.setAttribute('aria-selected','false'); });
+      tab.setAttribute('aria-selected','true');
+      platform = tab.getAttribute('data-assistant');
+      card.classList.remove('skin-claude','skin-gpt');
+      card.classList.add(platform === 'Claude' ? 'skin-claude' : 'skin-gpt');
+      headBrand.textContent = platform;
+      play();
+    });
+  });
+
+  var io2 = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){ e.target.classList.add('in'); io2.unobserve(e.target); }
+    });
+  }, {threshold:.15});
+  document.querySelectorAll('.reveal').forEach(function(el){ io2.observe(el); });
+})();
+</script>
+</body>
+</html>
