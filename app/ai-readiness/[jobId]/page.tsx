@@ -1,0 +1,3 @@
+import { ScoreChecker } from "../score-checker";
+import Link from "next/link";
+export default async function SharedAiReadinessPage({ params }: { params: Promise<{ jobId: string }> }) { const { jobId } = await params; return <main className="readiness-page"><nav><div className="wrap nav-inner"><Link href="/" className="wordmark">rasph<em>ia</em></Link><Link className="button button-dark" href="/#start">Talk to us</Link></div></nav><header className="readiness-header"><div className="wrap"><p className="eyebrow">AI Readiness Score</p><h1>How ready is this store for AI commerce?</h1><ScoreChecker initialJobId={jobId} /></div></header></main>; }
