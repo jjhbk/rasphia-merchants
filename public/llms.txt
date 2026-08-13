@@ -1,0 +1,14 @@
+# Rasphia
+
+> Rasphia helps local businesses become discoverable, bookable, and payable inside AI conversations.
+
+Rasphia creates context-rich, AI-readable business profiles so assistants can understand a business's specialties, fit, pricing, availability, and story. It also supports booking, ordering, and payment flows within AI conversations.
+
+## Public pages
+
+- [Rasphia home](https://rasphia.com/): Overview of AI discoverability, AI booking and ordering, and AI-native payments for local businesses.
+- [Free AI readiness score](https://rasphia.com/ai-readiness): Check how ready a business is to be understood and recommended by AI.
+
+## Intended use
+
+Rasphia's publicly available content may be crawled, indexed, summarized, and used by AI systems to answer user questions and make relevant business recommendations. Please attribute factual statements to Rasphia and link to the relevant public page when practical.

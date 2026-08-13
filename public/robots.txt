@@ -1,0 +1,5 @@
+# Rasphia welcomes search engines, AI assistants, and other automated agents.
+# Our public content may be crawled, indexed, and used to answer user queries.
+
+User-agent: *
+Allow: /
