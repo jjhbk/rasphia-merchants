@@ -9,12 +9,13 @@ export function InterestForm() {
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setStatus("sending"); setError("");
     try {
-      const response = await fetch("/api/merchant-interest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) });
+      const response = await fetch("/api/merchant-interest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
       const result = await response.json();
       if (!response.ok) { setError(result.error || "Something went wrong. Please try again."); setStatus("error"); return; }
-      event.currentTarget.reset(); setStatus("success");
+      form.reset(); setStatus("success");
     } catch {
       setError("We couldn't reach the server. Please try again.");
       setStatus("error");
