@@ -40,6 +40,6 @@ export async function POST(request: Request) {
     } catch (error) {
       console.error("Could not save completed business diagnosis", error);
       return NextResponse.json({ id, research, report, blobUrl, emailDelivered, persistenceWarning: "The report is ready, but its shareable link could not be saved. Please try again shortly." });
-    } finally { await sql.end(); }
+    } finally { try { await sql.end(); } catch (error) { console.error("Could not close diagnosis database connection", error); } }
   } catch (error) { console.error("Business diagnosis research failed", error); return NextResponse.json({ error: error instanceof Error ? error.message : "We couldn’t research this business. Please try another source." }, { status: 502 }); }
 }
