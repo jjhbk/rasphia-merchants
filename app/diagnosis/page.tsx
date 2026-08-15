@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { DiagnosisTool } from "./diagnosis-tool";
+export const metadata = { title: "Business Diagnosis | Rasphia", description: "A public-data, research-led growth, retention, and revenue strategy for your business." };
+export default function DiagnosisPage() { return <main className="diagnosis-page"><nav><div className="wrap nav-inner"><Link href="/" className="wordmark">rasph<em>ia</em></Link><Link className="button button-dark" href="/#start">Talk to us</Link></div></nav><header className="diagnosis-header"><div className="wrap"><p className="eyebrow">Free business diagnosis</p><h1>One business. The next moves that matter.</h1><p>Start with a name or link. Rasphia researches publicly available business information, asks only the questions that improve the answer, then builds your Grow, Retain, and Get Paid strategy.</p><DiagnosisTool /></div></header></main>; }

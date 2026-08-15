@@ -28,10 +28,10 @@ export function InterestForm() {
       <div className="field-row"><label>Email<input required type="email" name="email" autoComplete="email" /></label><label>Phone <span>(optional)</span><input name="phone" type="tel" autoComplete="tel" /></label></div>
       <label>What kind of business do you run?<input name="businessType" placeholder="Salon, studio, local brand…" /></label>
       <label>Anything you&apos;d like us to know? <span>(optional)</span><textarea name="message" rows={3} /></label>
-      <button className="button button-gold" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Register interest"}</button>
-      {status === "success" && <p className="form-success" role="status">You&apos;re on the list — we&apos;ll be in touch shortly.</p>}
+      <button className="button button-gold" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Request my diagnosis"}</button>
+      {status === "success" && <p className="form-success" role="status">Thanks — we&apos;ll be in touch shortly to arrange your diagnosis.</p>}
       {status === "error" && <p className="form-error" role="alert">{error}</p>}
     </form>
-    <aside className="schedule-card"><p className="section-label">Prefer a conversation?</p><h3>Choose a time that works for you.</h3><p>Book a no-pressure 20-minute call and we&apos;ll show you how your business could appear in AI answers.</p>{calendlyUrl ? <a className="button button-dark" href={calendlyUrl} target="_blank" rel="noreferrer">Schedule a call ↗</a> : <p className="setup-note">Add <code>NEXT_PUBLIC_CALENDLY_URL</code> to enable scheduling.</p>}</aside>
+    <aside className="schedule-card"><p className="section-label">Prefer a conversation?</p><h3>Choose a time that works for you.</h3><p>Book a no-pressure 20-minute call. We&apos;ll talk through the business, where growth feels stuck, and what a useful diagnosis could uncover.</p>{calendlyUrl ? <a className="button button-dark" href={calendlyUrl} target="_blank" rel="noreferrer">Schedule a call ↗</a> : <p className="setup-note">Add <code>NEXT_PUBLIC_CALENDLY_URL</code> to enable scheduling.</p>}</aside>
   </div>;
 }

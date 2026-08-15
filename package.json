@@ -11,12 +11,14 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "cheerio": "^1.1.2",
     "next": "16.2.11",
     "openai": "^6.0.0",
     "postgres": "3.4.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "resend": "^6.20.0",
     "robots-parser": "^3.0.1"
   },
   "devDependencies": {

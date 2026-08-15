@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { DiagnosisTool } from "../diagnosis-tool";
+export default async function SharedDiagnosisPage({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <main className="diagnosis-page"><nav><div className="wrap nav-inner"><Link href="/" className="wordmark">rasph<em>ia</em></Link><Link className="button button-dark" href="/diagnosis">Start a diagnosis</Link></div></nav><header className="diagnosis-header"><div className="wrap"><p className="eyebrow">Rasphia diagnosis</p><h1>Business strategy, grounded in evidence.</h1><DiagnosisTool initialId={id} /></div></header></main>; }

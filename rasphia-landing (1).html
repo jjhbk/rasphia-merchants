@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rasphia — The growth engine that actually understands your business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#142A33;--ink-soft:#3C545E;--mist:#F4F6F2;--white:#FFFFFF;
+    --marigold:#F0A32F;--marigold-deep:#D98A10;--leaf:#33705F;--leaf-soft:#E4EEE9;
+    --line:#D9DED6;--rose:#B85C4A;--radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Schibsted Grotesk',sans-serif;background:var(--mist);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+
+  nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--mist) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .wordmark{font-family:'Instrument Serif',serif;font-size:1.35rem;text-decoration:none}
+  .wordmark em{color:var(--marigold-deep);font-style:italic}
+  .btn{display:inline-block;text-decoration:none;font-weight:600;font-size:.95rem;padding:12px 24px;border-radius:999px;border:1.5px solid var(--ink);transition:transform .15s ease,background .15s ease,color .15s ease}
+  .btn:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+  .btn-solid{background:var(--ink);color:var(--white)}
+  .btn-solid:hover{background:var(--marigold);border-color:var(--marigold);color:var(--ink);transform:translateY(-1px)}
+  .btn-gold{background:var(--marigold);border-color:var(--marigold);color:var(--ink)}
+  .btn-gold:hover{background:var(--ink);border-color:var(--ink);color:var(--white);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--white)}
+
+  .hero{padding:64px 0 80px}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+  .eyebrow{font-family:'Spline Sans Mono',monospace;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--leaf);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:1.5px;background:var(--leaf)}
+  h1{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(2.5rem,5vw,3.9rem);line-height:1.06;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--marigold-deep)}
+  h1 .strike{position:relative;white-space:nowrap}
+  h1 .strike::after{content:"";position:absolute;left:-2%;right:-2%;top:54%;height:3px;background:var(--marigold);transform:rotate(-1.5deg);border-radius:2px}
+  .hero p.lede{margin:24px 0 32px;font-size:1.13rem;color:var(--ink-soft);max-width:34rem}
+  .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .hero-note{font-size:.85rem;color:var(--ink-soft);margin-top:16px}
+
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 60px -24px rgba(20,42,51,.25);overflow:hidden}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--leaf-soft)}
+  .panel-head .biz{font-weight:700;font-size:.95rem}
+  .panel-head .kind{font-family:'Spline Sans Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--leaf);white-space:nowrap}
+  .panel-body{padding:20px 18px 20px;min-height:480px;display:flex;flex-direction:column;gap:14px}
+  .blk{opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+  .blk.show{opacity:1;transform:none}
+  .blk-label{font-family:'Spline Sans Mono',monospace;font-size:.63rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .blk-label::after{content:"";flex:1;height:1px;background:var(--line)}
+  .leak{background:#FBF0EC;border:1px solid #EDCFC6;border-radius:10px;padding:11px 13px;font-size:.88rem;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;line-height:1.45}
+  .leak .amt{color:var(--rose);font-weight:700;white-space:nowrap;font-family:'Spline Sans Mono',monospace;font-size:.8rem}
+  .play{border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;background:var(--white)}
+  .play.top{border-color:var(--marigold);background:#FFFBF3}
+  .play-rank{font-family:'Spline Sans Mono',monospace;font-size:.61rem;letter-spacing:.1em;text-transform:uppercase;color:var(--marigold-deep);margin-bottom:5px}
+  .play-top-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+  .play-name{font-weight:700;font-size:.9rem}
+  .play-roi{font-family:'Spline Sans Mono',monospace;font-size:.73rem;color:var(--leaf);white-space:nowrap}
+  .play-why{font-size:.83rem;color:var(--ink-soft);line-height:1.45}
+  .skip{font-size:.83rem;color:var(--ink-soft);border-left:2px solid var(--line);padding-left:12px;line-height:1.45}
+  .skip b{color:var(--rose);font-weight:600}
+  .deploy{margin-top:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .deploy-btn{font-size:.86rem;font-weight:700;background:var(--marigold);color:var(--ink);border:none;border-radius:999px;padding:11px 22px;cursor:default}
+  .deploy-note{font-size:.79rem;color:var(--ink-soft)}
+  .replay{align-self:center;font-family:'Spline Sans Mono',monospace;font-size:.7rem;letter-spacing:.08em;background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink-soft);cursor:pointer}
+  .replay:hover{border-color:var(--ink);color:var(--ink)}
+
+  .strip{background:var(--ink);color:var(--mist);padding:20px 0}
+  .strip-inner{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .strip .mono{font-family:'Spline Sans Mono',monospace;font-size:.8rem;letter-spacing:.06em;opacity:.92}
+  .strip .mono b{color:var(--marigold);font-weight:500}
+
+  section{padding:92px 0}
+  .sec-eyebrow{font-family:'Spline Sans Mono',monospace;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--leaf);margin-bottom:14px}
+  h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(1.9rem,3.6vw,2.7rem);line-height:1.12;max-width:30ch}
+  .sec-sub{margin-top:16px;color:var(--ink-soft);max-width:40rem;font-size:1.05rem}
+
+  .noise-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:52px}
+  .noise-card{border-radius:var(--radius);padding:30px;border:1px solid var(--line)}
+  .noise-before{background:var(--white)}
+  .noise-after{background:var(--ink);color:var(--mist);border-color:var(--ink)}
+  .tag{font-family:'Spline Sans Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;display:inline-block;margin-bottom:20px;padding:5px 12px;border-radius:999px}
+  .noise-before .tag{background:var(--mist);color:var(--ink-soft);border:1px solid var(--line)}
+  .noise-after .tag{background:var(--marigold);color:var(--ink)}
+  .noise-list{display:flex;flex-direction:column;gap:11px;font-size:.94rem}
+  .noise-list div{display:flex;gap:10px;align-items:baseline}
+  .noise-before .mark{color:var(--rose);font-weight:700}
+  .noise-after .mark{color:var(--marigold);font-weight:700}
+  .noise-before .muted{color:var(--ink-soft);font-size:.9rem;margin-top:18px}
+  .noise-after .muted{color:#B9C6C4;font-size:.9rem;margin-top:18px}
+
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:52px}
+  .pillar{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:28px 24px}
+  .pillar .cap{font-family:'Spline Sans Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--leaf);margin-bottom:12px}
+  .pillar h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:1.5rem;margin-bottom:10px}
+  .pillar p{color:var(--ink-soft);font-size:.94rem;margin-bottom:14px}
+  .pillar ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .pillar li{font-size:.88rem;display:flex;gap:8px;align-items:baseline}
+  .pillar li::before{content:"→";color:var(--marigold-deep);font-weight:700}
+
+  .cases{margin-top:48px;border-top:1px solid var(--line)}
+  .case{display:grid;grid-template-columns:210px 1fr;gap:24px;padding:24px 4px;border-bottom:1px solid var(--line);align-items:baseline;transition:background .15s ease}
+  .case:hover{background:var(--white)}
+  .case h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:1.25rem}
+  .case p{color:var(--ink-soft);font-size:.95rem}
+  .case p b{color:var(--leaf);font-weight:600}
+  .case p .no{color:var(--rose);font-weight:600}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:52px}
+  .step{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:28px 24px}
+  .step .num{font-family:'Instrument Serif',serif;font-size:2.4rem;color:var(--marigold-deep);line-height:1;margin-bottom:14px}
+  .step h3{font-size:1.08rem;font-weight:700;margin-bottom:9px}
+  .step p{color:var(--ink-soft);font-size:.94rem}
+
+  .why{background:var(--ink);color:var(--mist)}
+  .why h2{color:var(--white)}
+  .why .sec-sub{color:#B9C6C4}
+  .why-points{display:grid;grid-template-columns:repeat(2,1fr);gap:32px;margin-top:52px}
+  .why-point{border-top:2px solid var(--marigold);padding-top:18px}
+  .why-point h3{font-size:1.05rem;font-weight:700;margin-bottom:10px;color:var(--white)}
+  .why-point p{font-size:.94rem;color:#B9C6C4}
+
+  .final{text-align:center;padding:104px 0}
+  .final h2{margin:0 auto}
+  .final .sec-sub{margin-left:auto;margin-right:auto}
+  .final .hero-ctas{justify-content:center;margin-top:34px}
+
+  footer{border-top:1px solid var(--line);padding:28px 0;font-size:.85rem;color:var(--ink-soft)}
+  .foot-inner{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .reveal,.blk{opacity:1;transform:none}
+  }
+  @media (max-width:900px){
+    .hero{padding:44px 0 60px}
+    .hero-grid,.noise-grid,.pillars,.steps,.why-points{grid-template-columns:1fr}
+    .case{grid-template-columns:1fr;gap:6px}
+    section{padding:68px 0}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="wordmark" href="#">rasph<em>ia</em></a>
+    <a class="btn btn-solid" href="#start">Get free diagnosis</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Growth · Management · Payments</p>
+      <h1>You don't need <span class="strike">more marketing</span>.<br>You need the <em>right one</em>.</h1>
+      <p class="lede">Rasphia studies your business the way a great consultant would — your prices, your bookings, your customers, your quiet hours, where money is quietly leaking — then finds the two moves with the highest return for a business exactly like yours. And runs them for you, in one click.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="#start">Get your free diagnosis</a>
+        <a class="btn btn-ghost" href="#pillars">See how it works</a>
+      </div>
+      <p class="hero-note">Free diagnosis · No commitment · Built for local service businesses</p>
+    </div>
+
+    <div class="panel" id="panel" aria-label="Example Rasphia diagnosis showing money leaks, ranked growth plays, and what to skip">
+      <div class="panel-head">
+        <span class="biz" id="pBiz">Meera's Curl Studio</span>
+        <span class="kind" id="pKind">SALON · 4 CHAIRS</span>
+      </div>
+      <div class="panel-body">
+        <div class="blk" id="b1">
+          <div class="blk-label">Where you're leaking money</div>
+          <div id="leaks"></div>
+        </div>
+        <div class="blk" id="b2">
+          <div class="blk-label">Highest-ROI plays for you</div>
+          <div id="plays"></div>
+        </div>
+        <div class="blk" id="b3">
+          <div class="blk-label">What to skip</div>
+          <div class="skip" id="skip"></div>
+        </div>
+        <div class="blk deploy" id="b4">
+          <button class="deploy-btn" type="button" id="deployBtn">Deploy both plays →</button>
+          <span class="deploy-note" id="deployNote">Runs automatically. You keep cutting hair.</span>
+        </div>
+        <button class="replay" id="replay" type="button">↺ replay</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="wrap strip-inner">
+    <span class="mono">Diagnoses <b>your business</b>, not your industry</span>
+    <span class="mono">Tells you what <b>not to spend on</b></span>
+    <span class="mono">Executes in <b>one click</b></span>
+  </div>
+</div>
+
+<section id="noise">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">The real problem</p>
+    <h2 class="reveal">Everyone tells you what to do. Nobody tells you what works for you.</h2>
+    <p class="sec-sub reveal">Run Meta ads. Post more Reels. Get on Google. Try influencers. Send offers. It all costs money, some of it works — and nobody can tell you which is which until you've already spent it finding out.</p>
+
+    <div class="noise-grid">
+      <div class="noise-card noise-before reveal">
+        <span class="tag">Guessing</span>
+        <div class="noise-list">
+          <div><span class="mark">✕</span><span>₹15,000 on ads that bring six people who never return</span></div>
+          <div><span class="mark">✕</span><span>An agency selling you the plan they sell everyone</span></div>
+          <div><span class="mark">✕</span><span>Five apps, none of which talk to each other</span></div>
+          <div><span class="mark">✕</span><span>200 lapsed customers you've never once messaged</span></div>
+          <div><span class="mark">✕</span><span>Empty Tuesdays, every single week</span></div>
+        </div>
+        <p class="muted">Money spent. Nothing learned. Same again next month.</p>
+      </div>
+      <div class="noise-card noise-after reveal">
+        <span class="tag">With Rasphia</span>
+        <div class="noise-list">
+          <div><span class="mark">✓</span><span>A diagnosis built from your actual numbers</span></div>
+          <div><span class="mark">✓</span><span>Two moves, ranked by what they'll realistically return</span></div>
+          <div><span class="mark">✓</span><span>An honest "don't spend here" — the part agencies skip</span></div>
+          <div><span class="mark">✓</span><span>One click to deploy. Then it runs itself</span></div>
+          <div><span class="mark">✓</span><span>Bookings, follow-ups and payments in one place</span></div>
+        </div>
+        <p class="muted">Know before you spend. Then let it run.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pillars" style="padding-top:0">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">The engine</p>
+    <h2 class="reveal">Three things every local business needs. One engine that does all three.</h2>
+    <div class="pillars">
+      <div class="pillar reveal">
+        <p class="cap">01 · Growth</p>
+        <h3>Get found, get chosen</h3>
+        <p>We put you where customers actually look now — then run only the acquisition channel that genuinely pays back for a business like yours.</p>
+        <ul>
+          <li>Google, AI assistants, local &amp; social search</li>
+          <li>The right channel: ads, influencers, or direct outreach</li>
+          <li>Campaigns written, launched and measured for you</li>
+        </ul>
+      </div>
+      <div class="pillar reveal">
+        <p class="cap">02 · Manage</p>
+        <h3>Keep them coming back</h3>
+        <p>You lose more money to customers who quietly stopped coming than to ones you never got. We catch them before they're gone.</p>
+        <ul>
+          <li>Lapsed-customer detection and win-backs</li>
+          <li>Empty slots filled automatically</li>
+          <li>Bookings, reminders and repeat questions handled</li>
+        </ul>
+      </div>
+      <div class="pillar reveal">
+        <p class="cap">03 · Payments</p>
+        <h3>Get paid faster, and more</h3>
+        <p>Money in without chasing — plus structures that turn one-time customers into recurring revenue.</p>
+        <ul>
+          <li>Payment links, UPI, instant confirmation</li>
+          <li>Deposits that stop no-shows</li>
+          <li>Packages and memberships that compound</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cases" style="padding-top:0">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">Same engine, different answer</p>
+    <h2 class="reveal">Because the right move for a salon is the wrong move for a clinic.</h2>
+    <div class="cases">
+      <div class="case reveal">
+        <h3>Neighbourhood salon</h3>
+        <p><b>Win-backs over WhatsApp, and filling dead Tuesdays.</b> <span class="no">Not ads</span> — your customers live within two kilometres and already know you exist.</p>
+      </div>
+      <div class="case reveal">
+        <h3>New dental clinic</h3>
+        <p><b>Search and AI-assistant visibility first.</b> Most patients research before they ever call — if you're invisible there, nothing else you spend on matters.</p>
+      </div>
+      <div class="case reveal">
+        <h3>Boutique fitness studio</h3>
+        <p><b>Micro-influencer collabs and a membership offer.</b> <span class="no">Not Meta ads</span> — you'd be paying to reach strangers who'll never travel to you.</p>
+      </div>
+      <div class="case reveal">
+        <h3>Independent consultant</h3>
+        <p><b>Fixed-fee packages and referral automation.</b> Your problem was never leads — it was leaky follow-up and pricing that punished your best work.</p>
+      </div>
+      <div class="case reveal">
+        <h3>Home services &amp; trades</h3>
+        <p><b>Review generation and instant quote replies.</b> Speed of response wins these jobs, not ad spend — you were losing to whoever called back first.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="why">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">Why this isn't another agency</p>
+    <h2 class="reveal">The most valuable thing we do is stop you spending money.</h2>
+    <div class="why-points">
+      <div class="why-point reveal">
+        <h3>It knows your business, not just your industry</h3>
+        <p>Generic advice is what agencies sell because they don't know your numbers. Rasphia works from your real data — what you charge, who books, when you're empty, what customers actually say.</p>
+      </div>
+      <div class="why-point reveal">
+        <h3>It executes, it doesn't just advise</h3>
+        <p>A report you have to act on yourself is just a longer to-do list. One click and the campaign, the messages and the follow-ups are live.</p>
+      </div>
+      <div class="why-point reveal">
+        <h3>It tells you what not to do</h3>
+        <p>No agency has an incentive to say "don't run those ads, they won't work for you." We do — because we're measured on your return, not your spend.</p>
+      </div>
+      <div class="why-point reveal">
+        <h3>It's one thing, not seven</h3>
+        <p>No juggling a booking app, a payment gateway, an ads dashboard, a WhatsApp tool and an agency. One engine. Three outcomes: grow, manage, get paid.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start" style="padding-top:92px">
+  <div class="wrap">
+    <p class="sec-eyebrow reveal">Getting started</p>
+    <h2 class="reveal">Fifteen minutes to know exactly where your money is going.</h2>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="num">1</div>
+        <h3>Free diagnosis</h3>
+        <p>We analyse your business — your presence, bookings, reviews, pricing, gaps — and show you precisely where you're leaking money and where the fastest wins are. No commitment.</p>
+      </div>
+      <div class="step reveal">
+        <div class="num">2</div>
+        <h3>Your plays, ranked</h3>
+        <p>The two or three highest-ROI moves for your specific business, with what each should realistically return — and an honest list of what to skip. You choose.</p>
+      </div>
+      <div class="step reveal">
+        <div class="num">3</div>
+        <h3>One-click deploy</h3>
+        <p>We run them. Campaigns, win-backs, booking flows, payment links — live and working. You go back to doing what you're great at.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2 class="reveal">Most local businesses don't fail because they're not good enough.</h2>
+    <p class="sec-sub reveal">They fail because nobody told them which of the forty possible things to do first. Let's find your two.</p>
+    <div class="hero-ctas reveal">
+      <a class="btn btn-gold" href="#">Get your free diagnosis</a>
+      <a class="btn btn-ghost" href="#">Talk to us</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span>© 2026 · Rasphia</span>
+    <span style="font-family:'Spline Sans Mono',monospace;font-size:.75rem;letter-spacing:.06em">GROW · MANAGE · GET PAID</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var timers=[], current=0;
+  var pBiz=document.getElementById('pBiz'), pKind=document.getElementById('pKind');
+  var leaksEl=document.getElementById('leaks'), playsEl=document.getElementById('plays'), skipEl=document.getElementById('skip');
+  var deployBtn=document.getElementById('deployBtn'), deployNote=document.getElementById('deployNote');
+  var blocks=['b1','b2','b3','b4'].map(function(id){return document.getElementById(id);});
+
+  var cases=[
+    {
+      biz:"Meera's Curl Studio", kind:"SALON · 4 CHAIRS",
+      leaks:[
+        {amt:"₹42,000/mo", txt:"214 customers haven't returned in 6+ months — never contacted"},
+        {amt:"₹18,000/mo", txt:"Tuesday and Wednesday chairs sit 70% empty"}
+      ],
+      plays:[
+        {rank:"Play 1 · start here", name:"WhatsApp win-back, 214 lapsed clients", roi:"~9× return", why:"They already know you and live within 2 km. The cheapest customer you'll ever get back.", top:true},
+        {rank:"Play 2", name:"Midweek slot offers to regulars", roi:"~4× return", why:"Fills dead Tuesdays without discounting your busy Saturdays.", top:false}
+      ],
+      skip:"<b>Don't run Meta ads yet.</b> Your catchment is 2 km wide — you'd pay to reach people who will never travel to you. Revisit once midweek is full.",
+      note:"Runs automatically. You keep cutting hair."
+    },
+    {
+      biz:"Dr. Anaya's Dental Studio", kind:"CLINIC · NEW PRACTICE",
+      leaks:[
+        {amt:"₹65,000/mo", txt:"Invisible in search and AI assistants — most patients research first"},
+        {amt:"₹21,000/mo", txt:"31% no-show rate on booked appointments, no deposits taken"}
+      ],
+      plays:[
+        {rank:"Play 1 · start here", name:"Search and AI-assistant visibility setup", roi:"~7× return", why:"Patients search before they call. If you're absent there, nothing else you spend matters.", top:true},
+        {rank:"Play 2", name:"Deposit-backed booking confirmations", roi:"~5× return", why:"A small deposit sharply cuts no-shows — pure recovered revenue, zero ad spend.", top:false}
+      ],
+      skip:"<b>Don't buy a leads package.</b> You'd be paying per lead for patients who would have found you free once your search presence is fixed.",
+      note:"Runs automatically. You keep treating patients."
+    },
+    {
+      biz:"Prana Shala", kind:"FITNESS STUDIO · 6 PER BATCH",
+      leaks:[
+        {amt:"₹38,000/mo", txt:"Drop-in-only pricing — no memberships, no recurring revenue"},
+        {amt:"₹12,000/mo", txt:"Trial attendees are never followed up after the first class"}
+      ],
+      plays:[
+        {rank:"Play 1 · start here", name:"Convert trials into 3-month memberships", roi:"~8× return", why:"You're already getting trials. You're just not asking them to stay.", top:true},
+        {rank:"Play 2", name:"Micro-influencer collab, 3 local creators", roi:"~6× return", why:"Your style sells on being seen. Three local creators beat a month of ad spend at a fraction of the cost.", top:false}
+      ],
+      skip:"<b>Don't scale Meta ads.</b> At ₹6 a click you'd be renting strangers. Your growth is social proof and retention, not reach.",
+      note:"Runs automatically. You keep teaching."
+    }
+  ];
+
+  function render(c){
+    pBiz.textContent=c.biz; pKind.textContent=c.kind;
+    leaksEl.innerHTML=c.leaks.map(function(l){
+      return '<div class="leak"><span class="amt">'+l.amt+'</span><span>'+l.txt+'</span></div>';
+    }).join('');
+    playsEl.innerHTML=c.plays.map(function(p){
+      return '<div class="play'+(p.top?' top':'')+'">'+
+        '<div class="play-rank">'+p.rank+'</div>'+
+        '<div class="play-top-row"><span class="play-name">'+p.name+'</span><span class="play-roi">'+p.roi+'</span></div>'+
+        '<div class="play-why">'+p.why+'</div></div>';
+    }).join('');
+    skipEl.innerHTML=c.skip;
+    deployNote.textContent=c.note;
+  }
+
+  function clear(){ timers.forEach(clearTimeout); timers=[]; }
+
+  function play(){
+    clear();
+    render(cases[current]);
+    if(reduced){ blocks.forEach(function(b){b.classList.add('show');}); return; }
+    blocks.forEach(function(b){ b.classList.remove('show'); });
+    var d=400;
+    blocks.forEach(function(b){
+      timers.push(setTimeout(function(){ b.classList.add('show'); }, d));
+      d+=950;
+    });
+    timers.push(setTimeout(function(){
+      current=(current+1)%cases.length;
+      play();
+    }, d+4200));
+  }
+
+  var started=false;
+  new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting && !started){ started=true; play(); } });
+  },{threshold:.35}).observe(document.getElementById('panel'));
+
+  document.getElementById('replay').addEventListener('click', play);
+
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
