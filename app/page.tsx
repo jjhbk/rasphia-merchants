@@ -105,7 +105,7 @@ const examples: [string, string, string][] = [
 
 export default function Home() {
   return <main>
-    <nav><div className="wrap nav-inner"><a className="wordmark" href="#top">rasph<em>ia</em></a><div className="nav-actions"><Link className="button button-dark" href="/diagnosis">Get free diagnosis</Link></div></div></nav>
+    <nav><div className="wrap nav-inner"><a className="wordmark" href="#top">rasph<em>ia</em></a><div className="nav-actions"><Link className="nav-utility" href="/faq">FAQ</Link><Link className="button button-dark" href="/diagnosis">Get free diagnosis</Link></div></div></nav>
 
     <header id="top" className="hero"><div className="wrap hero-grid">
       <div className="hero-copy"><p className="eyebrow">AI agents for growth · retention · revenue</p><h1>You don’t need <span>more marketing</span>.<br />You need the <em>right move</em>.</h1><p className="lede">Rasphia finds where your business is losing money, picks the few moves most likely to pay back — then deploys AI agents to run them for you. Discoverability, customer replies, follow-ups, bookings, payments. On autopilot.</p><div className="actions"><Link className="button button-gold" href="/diagnosis">Get your free diagnosis</Link><a className="button button-outline" href="#how">See how it works</a></div><p className="note">Diagnosis first · AI-powered execution next · For local businesses</p></div>
@@ -125,6 +125,17 @@ export default function Home() {
     <section className="steps-section"><div className="wrap"><p className="section-label">Getting started</p><h2>Fifteen minutes to see where growth is getting stuck.</h2><div className="steps"><article><b>1</b><h3>Share the picture</h3><p>Tell us about your business, your customers, and where you feel stuck.</p></article><article><b>2</b><h3>See your diagnosis</h3><p>We identify the leaks, rank the next moves, and show what is not worth doing yet.</p></article><article><b>3</b><h3>Deploy the right agents</h3><p>Choose the work to run. Rasphia builds and operates the AI agents and connected customer journeys behind it.</p></article></div></div></section>
 
     <section id="start" className="final"><div className="wrap"><p className="section-label">Your free diagnosis</p><h2>Find the two moves that matter most right now.</h2><p className="section-intro">Tell us a little about your business. We’ll follow up with a no-pressure conversation and a clearer view of where to start.</p><InterestForm /></div></section>
-    <footer><div className="wrap footer-inner"><span>© 2026 · Rasphia</span><span>GROW · RETAIN · EARN</span></div></footer>
+    <footer><div className="wrap footer-inner"><span>© 2026 · Rasphia</span><span><Link href="/faq">FAQ</Link> · GROW · RETAIN · EARN</span></div></footer>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: "Rasphia business diagnosis and AI growth execution",
+      url: "https://rasphia.com/",
+      description: "A free business diagnosis for local service businesses, followed by optional AI-assisted execution for discoverability, customer follow-up, bookings, and payments.",
+      provider: { "@type": "Organization", name: "Rasphia", url: "https://rasphia.com" },
+      areaServed: "Worldwide",
+      audience: { "@type": "Audience", audienceType: "Local service businesses" },
+      serviceType: ["Business growth diagnosis", "Local business AI discoverability", "Customer retention automation"],
+    }) }} />
   </main>;
 }

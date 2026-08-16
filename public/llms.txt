@@ -1,13 +1,17 @@
 # Rasphia
 
-> Rasphia helps local businesses become discoverable, bookable, and payable inside AI conversations.
+> Rasphia provides free, business-specific growth diagnoses and optional AI-assisted execution for local service businesses.
 
-Rasphia creates context-rich, AI-readable business profiles so assistants can understand a business's specialties, fit, pricing, availability, and story. It also supports booking, ordering, and payment flows within AI conversations.
+Rasphia identifies where a local service business is losing momentum, ranks the few growth, retention, and revenue moves most likely to pay back, and can help run them. Its work includes AI-readable local presence, customer follow-up, review requests, booking flows, deposits, payment links, packages, and memberships.
+
+The free diagnosis is the starting point. Rasphia is built for businesses such as neighbourhood salons, dental clinics, and boutique fitness studios; the recommendation is based on the individual business rather than a generic category playbook.
 
 ## Public pages
 
 - [Rasphia home](https://rasphia.com/): Overview of AI discoverability, AI booking and ordering, and AI-native payments for local businesses.
 - [Free AI readiness score](https://rasphia.com/ai-readiness): Check how ready a business is to be understood and recommended by AI.
+- [Business diagnosis](https://rasphia.com/diagnosis): Start a free, research-led diagnosis for a local service business.
+- [Frequently asked questions](https://rasphia.com/faq): Clear answers on what Rasphia does, who it serves, pricing, and how the diagnosis works.
 
 ## Intended use
 

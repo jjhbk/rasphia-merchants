@@ -3,3 +3,18 @@
 
 User-agent: *
 Allow: /
+
+# Named explicitly so crawler policies are clear to the AI systems we want to reach.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://rasphia.com/sitemap.xml
