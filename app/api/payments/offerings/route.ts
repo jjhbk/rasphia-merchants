@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import postgres from "postgres";
 import { getCurrentSession } from "../../../../lib/auth";
+import { isSupportedCurrency } from "../../../../lib/currencies";
 
 export async function POST(request: Request) {
   const session = await getCurrentSession(); if (!session) return NextResponse.json({ error: "Sign in to create an offering." }, { status: 401 });
   let body: { name?: unknown; description?: unknown; paymentType?: unknown; amount?: unknown; currency?: unknown; billingInterval?: unknown; intervalCount?: unknown; totalCycles?: unknown; trialDays?: unknown };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid payment offering." }, { status: 400 }); }
-  const paymentType = ["one_time", "deposit", "package", "recurring"].includes(String(body.paymentType)) ? String(body.paymentType) : ""; const name = typeof body.name === "string" ? body.name.trim().slice(0, 160) : ""; const amount = typeof body.amount === "number" ? body.amount : 0; const currency = typeof body.currency === "string" && /^[a-z]{3}$/i.test(body.currency) ? body.currency.toUpperCase() : ""; const interval = paymentType === "recurring" && ["day", "week", "month", "year"].includes(String(body.billingInterval)) ? String(body.billingInterval) : null; const intervalCount = paymentType === "recurring" && typeof body.intervalCount === "number" ? body.intervalCount : null;
+  const paymentType = ["one_time", "deposit", "package", "recurring"].includes(String(body.paymentType)) ? String(body.paymentType) : ""; const name = typeof body.name === "string" ? body.name.trim().slice(0, 160) : ""; const amount = typeof body.amount === "number" ? body.amount : 0; const requestedCurrency = typeof body.currency === "string" ? body.currency.toUpperCase() : ""; const currency = isSupportedCurrency(requestedCurrency) ? requestedCurrency : ""; const interval = paymentType === "recurring" && ["day", "week", "month", "year"].includes(String(body.billingInterval)) ? String(body.billingInterval) : null; const intervalCount = paymentType === "recurring" && typeof body.intervalCount === "number" ? body.intervalCount : null;
   if (!name || !paymentType || !Number.isInteger(amount) || amount < 1 || !currency || (paymentType === "recurring" && (!interval || !intervalCount || intervalCount < 1))) return NextResponse.json({ error: "Add a name, amount, currency, and recurring interval where required." }, { status: 422 });
   if (!process.env.DATABASE_URL) return NextResponse.json({ error: "Database is not configured." }, { status: 503 });
   const sql = postgres(process.env.DATABASE_URL, { max: 1, connect_timeout: 5 });
