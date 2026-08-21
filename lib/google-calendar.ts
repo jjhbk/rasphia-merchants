@@ -24,8 +24,12 @@ export async function createCalendarBooking(input: { workspaceId: string; busine
     const connections = await sql<CalendarConnection[]>`select id, access_token_encrypted, refresh_token_encrypted, token_expires_at, selected_calendar_id from google_calendar_connections where workspace_id = ${input.workspaceId} and selected_calendar_id is not null limit 1`;
     const connection = connections[0]; if (!connection) return null;
     const accessToken = await activeAccessToken(sql, connection);
-    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(connection.selected_calendar_id!)}/events`, { method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify({ summary: `${input.serviceName} — ${input.customerName}`, description: `Booked through Rasphia for ${input.businessName}.\nCustomer: ${input.customerName}\nEmail: ${input.customerEmail}`, start: { dateTime: input.startsAt.toISOString(), timeZone: input.timezone }, end: { dateTime: input.endsAt.toISOString(), timeZone: input.timezone }, attendees: [{ email: input.customerEmail }], reminders: { useDefault: true } }), cache: "no-store" });
-    if (!response.ok) return null;
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(connection.selected_calendar_id!)}/events?sendUpdates=all`, { method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify({ summary: `${input.serviceName} — ${input.customerName}`, description: `Booked through Rasphia for ${input.businessName}.\nCustomer: ${input.customerName}\nEmail: ${input.customerEmail}`, start: { dateTime: input.startsAt.toISOString(), timeZone: input.timezone }, end: { dateTime: input.endsAt.toISOString(), timeZone: input.timezone }, attendees: [{ email: input.customerEmail }], reminders: { useDefault: true } }), cache: "no-store" });
+    if (!response.ok) {
+      const details = await response.text().catch(() => "");
+      console.error("Google Calendar event creation failed", response.status, details.slice(0, 1000));
+      return null;
+    }
     const event = await response.json() as { id?: string }; return event.id || null;
   } catch { return null; } finally { await sql.end(); }
 }

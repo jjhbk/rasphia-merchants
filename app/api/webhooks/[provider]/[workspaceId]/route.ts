@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import postgres from "postgres";
 import { paymentConnection, verifyWebhook, type PaymentProvider } from "../../../../../lib/payments";
+import { sendCustomerEmail } from "../../../../../lib/customer-message";
+import { sendWhatsAppTemplate } from "../../../../../lib/whatsapp";
 
 type ProviderObject = { id?: string; payment_intent?: string; subscription?: string; status?: string; current_period_start?: number; current_period_end?: number; current_start?: number; current_end?: number; cancel_at_period_end?: boolean; cancel_at_cycle_end?: boolean };
 
@@ -15,7 +17,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
     const eventId = provider === "stripe" ? event.id || "unknown" : `${event.event || "event"}:${subscriptionId || event.payload?.payment_link?.entity?.id || event.id || "unknown"}:${event.payload?.payment_link?.entity?.payment_id || ""}`; const eventType = provider === "stripe" ? event.type || "unknown" : event.event || "unknown"; const providerLinkId = provider === "stripe" ? event.data?.object?.id : event.payload?.payment_link?.entity?.id; const paymentLinkStatus = paymentLinkEventStatus(provider, eventType);
     const inserted = await sql`insert into payment_events (workspace_id, provider, provider_event_id, event_type, payload, processed_at) values (${workspaceId}, ${provider}, ${eventId}, ${eventType}, ${sql.json(event)}, now()) on conflict (provider, provider_event_id) do nothing returning id`;
     const providerPaymentId = provider === "stripe" ? event.data?.object?.payment_intent || null : event.payload?.payment_link?.entity?.payment_id || null;
-    if (inserted.length && providerLinkId && paymentLinkStatus) await sql`update payment_links set status = ${paymentLinkStatus}, provider_payment_id = coalesce(${providerPaymentId}, provider_payment_id), paid_at = case when ${paymentLinkStatus === 'paid'} then now() else paid_at end, updated_at = now() where workspace_id = ${workspaceId} and provider = ${provider} and provider_link_id = ${providerLinkId}`;
+    if (inserted.length && providerLinkId && paymentLinkStatus) {
+      const paidLinks = await sql<{ customer_id: string; description: string }[]>`update payment_links set status = ${paymentLinkStatus}, provider_payment_id = coalesce(${providerPaymentId}, provider_payment_id), paid_at = case when ${paymentLinkStatus === 'paid'} then now() else paid_at end, updated_at = now() where workspace_id = ${workspaceId} and provider = ${provider} and provider_link_id = ${providerLinkId} returning customer_id, description`;
+      if (paymentLinkStatus === "paid" && paidLinks[0]?.customer_id) {
+        const details = await sql<{ customer_name: string | null; customer_email: string | null; customer_phone: string | null; business_name: string; business_email: string | null; business_phone: string | null; workspace_slug: string; payment_template: { name: string; language: string } | null }[]>`select c.first_name as customer_name, c.email as customer_email, c.phone as customer_phone, w.name as business_name, ws.business_email, nullif(ws.settings->>'mobile', '') as business_phone, w.slug as workspace_slug, (wh.template_config->'payment')::jsonb as payment_template from customers c join workspaces w on w.id = c.workspace_id join workspace_settings ws on ws.workspace_id = w.id left join whatsapp_settings wh on wh.workspace_id = w.id and wh.enabled = true where c.id = ${paidLinks[0].customer_id} and c.workspace_id = ${workspaceId} limit 1`;
+        const detail = details[0]; const message = `Payment received for ${paidLinks[0].description}. Thank you.`;
+        if (detail) {
+          const emailJobs = [detail.customer_email ? sendCustomerEmail({ businessName: detail.business_name, senderSlug: detail.workspace_slug, to: detail.customer_email, customerName: detail.customer_name, body: message }) : Promise.resolve(null), detail.business_email ? sendCustomerEmail({ businessName: detail.business_name, senderSlug: detail.workspace_slug, to: detail.business_email, customerName: "team", body: `${detail.customer_name || "A customer"} has paid for ${paidLinks[0].description}.` }) : Promise.resolve(null)];
+          await Promise.allSettled(emailJobs);
+          if (detail.payment_template) {
+            const recipients = [detail.customer_phone, detail.business_phone].filter((recipient, index, list): recipient is string => Boolean(recipient) && list.indexOf(recipient) === index);
+            const whatsappResults = await Promise.allSettled(recipients.map((recipient) => sendWhatsAppTemplate({ to: recipient, template: detail.payment_template!.name, language: detail.payment_template!.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: recipient === detail.business_phone ? detail.customer_name || "Customer" : detail.customer_name || "there" }, { type: "text", parameter_name: "business_name", text: detail.business_name }, { type: "text", parameter_name: "update_message", text: recipient === detail.business_phone ? `${detail.customer_name || "A customer"} completed payment for ${paidLinks[0].description}.` : message }] }] })));
+            whatsappResults.forEach((result) => { if (result.status === "rejected") console.error("Payment WhatsApp notification failed", result.reason); });
+          }
+        }
+      }
+    }
     if (inserted.length && subscriptionId) {
       const status = subscriptionStatus(provider, subscriptionObject?.status); const start = subscriptionObject?.current_period_start || subscriptionObject?.current_start; const end = subscriptionObject?.current_period_end || subscriptionObject?.current_end; const cancelAtPeriodEnd = provider === "stripe" ? Boolean(subscriptionObject?.cancel_at_period_end) : Boolean(subscriptionObject?.cancel_at_cycle_end);
       if (provider === "stripe" && eventType === "checkout.session.completed" && providerLinkId) {
