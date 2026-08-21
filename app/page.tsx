@@ -1,173 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { InterestForm } from "./components/interest-form";
 
-type Diagnosis = {
-  business: string;
-  type: string;
-  leaks: { amount: string; copy: string }[];
-  plays: { name: string; return: string; copy: string; primary?: boolean }[];
-  skip: string;
-  note: string;
-};
-
-const diagnoses: Diagnosis[] = [
-  {
-    business: "Meera’s Curl Studio",
-    type: "Salon · 4 chairs",
-    leaks: [
-      { amount: "214 clients", copy: "haven’t returned in 6+ months — and have never been contacted." },
-      { amount: "Tue + Wed", copy: "chairs sit 70% empty, even while Saturdays are fully booked." },
-    ],
-    plays: [
-      { primary: true, name: "Win back lapsed regulars", return: "Start here", copy: "They already know and trust you. This is your lowest-cost next booking." },
-      { name: "Fill midweek slots", return: "Next", copy: "Offer regulars the right appointment at the right time — without discounting Saturday." },
-    ],
-    skip: "Don’t run Meta ads yet. Your catchment is two kilometres wide; you’d pay to reach people who will never travel to you.",
-    note: "You keep cutting hair. Rasphia runs the follow-up.",
-  },
-  {
-    business: "Dr. Anaya’s Dental Studio",
-    type: "Clinic · new practice",
-    leaks: [
-      { amount: "Search gap", copy: "means potential patients can’t find enough information to confidently choose you." },
-      { amount: "31%", copy: "of booked appointments become no-shows because no deposit is taken." },
-    ],
-    plays: [
-      { primary: true, name: "Fix search & AI visibility", return: "Start here", copy: "Patients research before they call. Be easy to find and easy to trust." },
-      { name: "Add deposit-backed bookings", return: "Next", copy: "A simple confirmation flow recovers revenue without buying a single lead." },
-    ],
-    skip: "Don’t buy a lead package yet. First make sure the patients already looking for you can find and book you.",
-    note: "You keep treating patients. Rasphia handles the flow.",
-  },
-  {
-    business: "Prana Shala",
-    type: "Fitness studio · 6 per batch",
-    leaks: [
-      { amount: "Trial drop-off", copy: "means first-time visitors are never invited back after their first class." },
-      { amount: "One-off visits", copy: "are leaving predictable membership revenue on the table." },
-    ],
-    plays: [
-      { primary: true, name: "Turn trials into memberships", return: "Start here", copy: "The demand is already there — the follow-up and offer are missing." },
-      { name: "Partner with local creators", return: "Next", copy: "Local social proof is likely to travel farther than broad, costly ad reach." },
-    ],
-    skip: "Don’t scale ads first. Retention and social proof will make every future acquisition effort work harder.",
-    note: "You keep teaching. Rasphia keeps the momentum moving.",
-  },
+const capabilities = [
+  { number: "01", title: "Capture every enquiry", copy: "Give customers one clear path from WhatsApp or your public booking page into a customer record your team can act on.", proof: "WhatsApp routing · Native booking page · Customer database" },
+  { number: "02", title: "Book without the back-and-forth", copy: "Show the services you offer, collect customer details, reserve the time, and send a Google Calendar invitation automatically.", proof: "Service catalogue · Google Calendar · Confirmations" },
+  { number: "03", title: "Follow up at the right moment", copy: "Keep customers informed through email and WhatsApp—from booking reminders to reactivation and post-service updates.", proof: "Email · Approved WhatsApp templates · Scheduled updates" },
+  { number: "04", title: "Collect and track revenue", copy: "Send secure one-time, deposit, package, or subscription links and see who paid without chasing spreadsheets.", proof: "Stripe · Razorpay · Payment ledger" },
 ];
 
-function DiagnosisPreview() {
+const outcomes = [
+  { label: "Growth", title: "Respond while intent is high.", copy: "Turn new enquiries into qualified conversations and bookings before they go cold." },
+  { label: "Retention", title: "Give customers a reason to return.", copy: "Automate reminders, rebooking, renewals, recalls, and thoughtful follow-ups." },
+  { label: "Revenue", title: "Make the next payment easy.", copy: "Move customers from interest to a secure payment link, package, or subscription." },
+];
+
+const niches = [
+  ["Law firms & CAs", "Turn urgent enquiries into consultations."],
+  ["Gyms", "Convert trials and protect renewals."],
+  ["Restaurants", "Request reviews and recover unhappy guests."],
+  ["Real estate", "Keep every buyer and seller warm."],
+  ["Med spas", "Fill consultations, cancellations, and rebookings."],
+  ["Dentists & doctors", "Bring overdue patients back to care."],
+  ["Service providers", "Follow up quotes and repeat-service dates."],
+];
+
+function ProductJourney() {
   const [active, setActive] = useState(0);
-  const diagnosis = diagnoses[active];
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setActive((current) => (current + 1) % diagnoses.length), 8500);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  return <div className="diagnosis-card" aria-label="Example Rasphia business diagnosis">
-    <div className="diagnosis-head">
-      <div><span className="live-dot" />Your Rasphia diagnosis</div>
-      <button type="button" onClick={() => setActive((active + 1) % diagnoses.length)} aria-label="Show another example diagnosis">↻</button>
-    </div>
-    <div className="diagnosis-body" key={active}>
-      <div className="business-title"><strong>{diagnosis.business}</strong><span>{diagnosis.type}</span></div>
-      <section className="diagnosis-section">
-        <p className="diagnosis-label">Where revenue is leaking</p>
-        {diagnosis.leaks.map((leak) => <div className="leak" key={leak.amount}><b>{leak.amount}</b><span>{leak.copy}</span></div>)}
-      </section>
-      <section className="diagnosis-section">
-        <p className="diagnosis-label">Your highest-priority plays</p>
-        {diagnosis.plays.map((play) => <div className={`play ${play.primary ? "primary" : ""}`} key={play.name}>
-          <div className="play-top"><span>{play.return}</span><b>{play.name}</b></div><p>{play.copy}</p>
-        </div>)}
-      </section>
-      <div className="skip"><b>What to skip</b><span>{diagnosis.skip}</span></div>
-      <div className="deploy"><span>Ready when you are</span><button type="button">Deploy these plays →</button></div>
-      <p className="diagnosis-note">{diagnosis.note}</p>
-    </div>
-  </div>;
+  const steps = [
+    { label: "Enquiry captured", meta: "WhatsApp · just now", title: "A new customer asks about a consultation" },
+    { label: "Booking confirmed", meta: "Calendar synced", title: "The customer chooses a service and time" },
+    { label: "Updates delivered", meta: "Email + WhatsApp", title: "Both the customer and business stay informed" },
+    { label: "Payment received", meta: "Razorpay · ₹2,500", title: "The payment appears in the workspace" },
+  ];
+  useEffect(() => { const timer = window.setInterval(() => setActive((value) => (value + 1) % steps.length), 2600); return () => window.clearInterval(timer); }, [steps.length]);
+  return <div className="home-product" aria-label="Rasphia customer journey demonstration"><div className="home-product-bar"><span><i /> Rasphia is working</span><b>Customer journey</b></div><div className="home-product-customer"><span>A</span><div><small>New customer</small><strong>Ananya Sharma</strong></div><em>Active</em></div><div className="home-journey">{steps.map((step, index) => <button type="button" key={step.label} className={index === active ? "active" : index < active ? "done" : ""} onClick={() => setActive(index)}><span>{index < active ? "✓" : index + 1}</span><div><small>{step.label}</small><strong>{step.title}</strong><em>{step.meta}</em></div></button>)}</div><div className="home-product-result"><span>One customer record</span><strong>Enquiry → booking → follow-up → payment</strong></div></div>;
 }
-
-const demoFlows = [
-  { label: "Gym", trigger: "Trial class ends", customer: "Asha · attended her first strength class", message: "Hey Asha — great having you in class today. Want a 3-class starter pass for this week?", outcome: "Starter pass booked", metric: "+1 membership opportunity" },
-  { label: "Clinic", trigger: "Check-up becomes overdue", customer: "Rahul · last visit 7 months ago", message: "Hi Rahul, you’re due for a routine check-up. There are two convenient times open this week.", outcome: "Check-up booked", metric: "No manual chasing" },
-  { label: "Agent", trigger: "Viewing is completed", customer: "Maya · viewed a 2-bed in Bandra", message: "Thanks for viewing today. I’ve saved two similar homes that fit what you liked — should I send them over?", outcome: "Conversation re-opened", metric: "Lead stays warm" },
-];
-
-function WorkflowDemo() {
-  const [active, setActive] = useState(0);
-  const flow = demoFlows[active];
-
-  return <section className="demo-section" id="demo"><div className="wrap demo-grid"><div className="demo-copy"><p className="section-label">See it in action</p><h2>A customer moment becomes the next right move.</h2><p>Choose a business to watch Rasphia notice a signal, make the follow-up personal, and push the outcome forward.</p><div className="demo-tabs" role="tablist" aria-label="Choose a workflow demo">{demoFlows.map((item, index) => <button key={item.label} type="button" className={index === active ? "active" : ""} onClick={() => setActive(index)} role="tab" aria-selected={index === active}>{item.label}</button>)}</div><Link className="button button-gold" href="/diagnosis">Build my workflow</Link></div><div className="workflow-demo" key={flow.label}><div className="workflow-top"><span><i /> Live workflow</span><b>{flow.label}</b></div><div className="workflow-steps"><article><small>01 · Signal</small><strong>{flow.trigger}</strong><p>{flow.customer}</p></article><div className="workflow-arrow">↓</div><article className="workflow-message"><small>02 · Rasphia follows up</small><p>{flow.message}</p><span>Sent on WhatsApp · just now</span></article><div className="workflow-arrow">↓</div><article className="workflow-outcome"><small>03 · Outcome</small><strong>✓ {flow.outcome}</strong><p>{flow.metric}</p></article></div></div></div></section>;
-}
-
-const pillars: [string, string, string, string[]][] = [
-  ["01 · Growth", "Get found. Get chosen.", "AI agents keep your local presence, content, reviews, and outreach moving after we identify the channel most likely to pay back.", ["Search, maps, social & AI visibility", "Local creator and campaign coordination", "Campaigns launched and measured"]],
-  ["02 · Retention", "Keep them coming back.", "AI agents answer repeat questions, follow up with quiet customers, and help fill spare capacity without another dashboard.", ["Lapsed-customer win-backs", "WhatsApp, email & reply automation", "Bookings, reminders & replies"]],
-  ["03 · Revenue", "Make every booking count.", "We connect the booking and payment journey so deposits, payment links, packages, and flexible options support predictable revenue.", ["Deposits & payment links", "Autopay, EMI & no-show protection", "Packages & memberships"]],
-];
-
-const examples: [string, string, string][] = [
-  ["Neighbourhood salon", "Win back regulars and fill midweek chairs.", "Not broad ads — customers already live nearby and know you exist."],
-  ["New dental clinic", "Build high-trust search visibility and add deposits.", "Patients research before they call; no-show protection comes before paid lead volume."],
-  ["Boutique fitness studio", "Convert trials and create a compelling membership offer.", "Retention and local social proof are a stronger foundation than rented reach."],
-];
-
-const nicheServices = [
-  { niche: "Law firms & CAs", promise: "Sell speed.", outcome: "More qualified consultations.", flow: ["Reply instantly", "Triage the enquiry", "Book the call"], delivery: ["Website and WhatsApp intake", "Matter-type triage and document checklist", "Calendar routing and reminders"] },
-  { niche: "Gyms", promise: "Keep memberships moving.", outcome: "More trials becoming members.", flow: ["Spot drop-off", "Send the right nudge", "Renew on time"], delivery: ["Trial-to-membership nurture", "Attendance and renewal alerts", "Class, coach, and win-back messages"] },
-  { niche: "Restaurants", promise: "Protect your reputation.", outcome: "More reviews. Faster recovery.", flow: ["Ask happy guests", "Respond on-brand", "Recover unhappy ones"], delivery: ["Timed review requests", "Review-response drafts", "Private guest recovery flows"] },
-  { niche: "Real estate agents", promise: "Never lose the follow-up.", outcome: "More warm leads reaching a decision.", flow: ["Capture the lead", "Follow up after viewing", "Nurture until ready"], delivery: ["Source-aware lead routing", "Viewing reminders and follow-up", "Property-match nurture updates"] },
-  { niche: "Med spas", promise: "Build full calendars.", outcome: "More consultations and rebookings.", flow: ["Answer in minutes", "Follow up the plan", "Fill cancellations"], delivery: ["Fast consultation response", "Treatment-plan and package follow-up", "Cancellation-fill and rebooking flows"] },
-  { niche: "Dentists & doctors", promise: "Book the check-up.", outcome: "More overdue patients returning.", flow: ["Find who is due", "Make booking easy", "Recover no-shows"], delivery: ["Care-based recall campaigns", "Booking and reminder flows", "No-show recovery and review prompts"] },
-  { niche: "Service providers", promise: "Follow up automatically.", outcome: "More quotes converting into jobs.", flow: ["Follow up the quote", "Ask for the review", "Bring them back"], delivery: ["SMS, WhatsApp, and email follow-up", "Job-complete review and referral requests", "Seasonal repeat-service reminders"] },
-];
 
 export default function Home() {
   const [dashboardUrl, setDashboardUrl] = useState<string | null>(null);
-  useEffect(() => { let active = true; fetch("/api/auth/session").then((response) => response.ok ? response.json() : null).then((data: { signedIn?: boolean; dashboardUrl?: string } | null) => { if (active && data?.signedIn && data.dashboardUrl) setDashboardUrl(data.dashboardUrl); }).catch(() => undefined); return () => { active = false; }; }, []);
-  return <main>
-    <nav><div className="wrap nav-inner"><a className="wordmark" href="#top">rasph<em>ia</em></a><div className="nav-actions"><a className="nav-utility" href="#services">Services</a><a className="nav-utility" href="#demo">See it in action</a><Link className="nav-utility" href="/faq">FAQ</Link><Link className="nav-utility" href={dashboardUrl || "/login"}>{dashboardUrl ? "Dashboard" : "Sign in"}</Link><Link className="button button-dark" href="/diagnosis">Get free diagnosis</Link></div></div></nav>
+  useEffect(() => { let mounted = true; fetch("/api/auth/session").then((response) => response.ok ? response.json() : null).then((data: { signedIn?: boolean; dashboardUrl?: string } | null) => { if (mounted && data?.signedIn && data.dashboardUrl) setDashboardUrl(data.dashboardUrl); }).catch(() => undefined); return () => { mounted = false; }; }, []);
+  return <main className="home-v2">
+    <nav className="home-nav"><div className="wrap nav-inner"><a className="wordmark" href="#top">rasph<em>ia</em></a><div className="nav-actions"><a className="nav-utility" href="#platform">Platform</a><a className="nav-utility" href="#industries">Industries</a><a className="nav-utility" href="#how">How it works</a><Link className="nav-utility" href={dashboardUrl || "/login"}>{dashboardUrl ? "Dashboard" : "Sign in"}</Link><Link className="button button-dark" href="/diagnosis">Get free diagnosis</Link></div></div></nav>
 
-    <header id="top" className="hero"><div className="wrap hero-grid">
-      <div className="hero-copy"><p className="eyebrow">AI agents for growth · retention · revenue</p><h1>You don’t need <span>more marketing</span>.<br />You need the <em>next move that pays back</em>.</h1><p className="lede">Rasphia diagnoses where leads, appointments, and returning customers fall through—then deploys AI agents to turn those moments into growth, retention, and revenue.</p><div className="actions"><Link className="button button-gold" href="/diagnosis">Get your free diagnosis</Link><a className="button button-outline button-play" href="#demo"><span>▶</span> See it in action</a></div><p className="note">Diagnose the leak · Deploy the AI workflow · Track the outcome</p></div>
-      <DiagnosisPreview />
-    </div></header>
+    <header className="home-hero" id="top"><div className="wrap home-hero-grid"><div className="home-hero-copy"><p className="eyebrow">AI agents for growth · retention · revenue</p><h1>Turn every enquiry into a <em>booked, followed-up, paying customer.</em></h1><p className="lede">Rasphia gives local businesses one connected system to capture leads, book appointments, send customer updates, follow up automatically, and collect payments.</p><div className="actions"><Link className="button button-gold" href="/diagnosis">Find my highest-value workflow</Link><a className="button button-outline button-play" href="#platform"><span>▶</span> See how it works</a></div><div className="home-hero-proof"><span>Google Calendar</span><span>WhatsApp</span><span>Email</span><span>Stripe</span><span>Razorpay</span></div></div><ProductJourney /></div></header>
 
-    <div className="strip"><div className="wrap strip-inner"><span>Diagnoses <b>your business</b>, not a category</span><span>Shows what <b>not to spend on</b></span><span>Deploys <b>AI agents to run the work</b></span></div></div>
+    <section className="home-promise"><div className="wrap"><p>Most businesses do not need more leads first.</p><h2>They need fewer customers slipping through the gaps.</h2><div><span>Missed enquiry</span><b>→</b><span>No follow-up</span><b>→</b><span>Empty calendar</span><b>→</b><span>Lost revenue</span></div></div></section>
 
-    <WorkflowDemo />
+    <section className="home-platform" id="platform"><div className="wrap"><div className="home-section-head"><div><p className="section-label">One connected customer engine</p><h2>From first message to money received.</h2></div><p>Rasphia keeps the customer, conversation, appointment, update, and payment connected—so your team always knows what should happen next.</p></div><div className="home-capabilities">{capabilities.map((item) => <article key={item.number}><small>{item.number}</small><h3>{item.title}</h3><p>{item.copy}</p><strong>{item.proof}</strong></article>)}</div></div></section>
 
-    <section><div className="wrap"><p className="section-label">The real problem</p><h2>Everyone has advice. Almost nobody has your answer.</h2><p className="section-intro">Run ads. Post more. Try influencers. Build a website. Send offers. Every suggestion costs time or money — and without a diagnosis, you only learn what doesn’t work after you have paid for it.</p><div className="before-after"><article className="before-card"><small>Without a diagnosis</small><h3>More activity. More guessing.</h3><ul><li>Ad spend that attracts the wrong customers</li><li>Old regulars who quietly never return</li><li>Empty capacity every week</li><li>Five disconnected tools to manage</li></ul><p>Money spent. Nothing learned. Same problem next month.</p></article><article className="after-card"><small>With Rasphia</small><h3>A clear next move.</h3><ul><li>Business-specific leaks, made visible</li><li>Two or three plays, ranked by priority</li><li>An honest recommendation of what to skip</li><li>Execution without another dashboard</li></ul><p>Know before you spend. Then make it happen.</p></article></div></div></section>
+    <section className="home-outcomes" id="how"><div className="wrap home-outcomes-grid"><div><p className="section-label">What Rasphia changes</p><h2>Less chasing.<br />More momentum.</h2><p>AI agents handle the repetitive customer moments while your team stays in control of the relationship.</p><Link className="button button-gold" href="/diagnosis">Diagnose my business</Link></div><div>{outcomes.map((outcome) => <article key={outcome.label}><span>{outcome.label}</span><div><h3>{outcome.title}</h3><p>{outcome.copy}</p></div></article>)}</div></div></section>
 
-    <section className="tight" id="how"><div className="wrap"><p className="section-label">The Rasphia engine</p><h2>Three outcomes. One connected system.</h2><p className="section-intro">The right answer may be different for every business. Rasphia connects growth, retention, and revenue so each move strengthens the next.</p><div className="pillars">{pillars.map(([number, title, copy, items]) => <article className="pillar" key={title}><small>{number}</small><h3>{title}</h3><p>{copy}</p><ul>{items.map((item) => <li key={item}>{item}</li>)}</ul></article>)}</div></div></section>
+    <section className="home-control"><div className="wrap home-control-grid"><div className="home-control-card"><div className="home-control-head"><span>Rasphia workspace</span><b>4/4 connected</b></div><div className="home-control-metrics"><article><small>Calendar</small><strong>Connected</strong></article><article><small>WhatsApp</small><strong>Connected</strong></article><article><small>Booking page</small><strong>Ready</strong></article><article><small>Payments</small><strong>Connected</strong></article></div><div className="home-control-event"><span>✓</span><div><b>Consultation booked and paid</b><small>Email, WhatsApp, and calendar updates delivered</small></div></div></div><div><p className="section-label">Simple for the business</p><h2>Set it up once. See every customer clearly.</h2><ul><li>A dedicated workspace for each business</li><li>A public booking page you can share anywhere</li><li>Customer profiles with bookings, messages, and payments</li><li>Fixed workflows you can activate without rebuilding the process</li><li>Custom workflows when your business needs something specific</li></ul><Link className="button button-dark" href={dashboardUrl || "/login"}>{dashboardUrl ? "Open dashboard" : "Create my workspace"}</Link></div></div></section>
 
-    <section className="tight"><div className="wrap"><p className="section-label">Same engine. Different answer.</p><h2>The right play for a salon can be the wrong play for a clinic.</h2><div className="examples">{examples.map(([business, answer, contrast]) => <article key={business}><h3>{business}</h3><p><strong>{answer}</strong> {contrast}</p></article>)}</div></div></section>
+    <section className="home-industries" id="industries"><div className="wrap"><div className="home-section-head"><div><p className="section-label">Built around your customer journey</p><h2>Different businesses. Clear outcomes.</h2></div><p>The system stays consistent. The trigger, message, timing, and result are tailored to how your business grows.</p></div><div className="home-niches">{niches.map(([name, result]) => <article key={name}><span>↗</span><h3>{name}</h3><p>{result}</p></article>)}</div></div></section>
 
-    <section className="services-section" id="services"><div className="wrap"><p className="section-label">Services by niche</p><h2>See the value in one glance.</h2><p className="section-intro">One business problem. One clear promise. One workflow we can build.</p><div className="niche-services">{nicheServices.map((service) => <article className="niche-service" key={service.niche}><p className="niche-name">{service.niche}</p><h3>{service.promise}</h3><div className="service-result"><span>Business result</span><strong>{service.outcome}</strong></div><div className="service-flow" aria-label={`${service.niche} workflow`}>{service.flow.map((step, index) => <div key={step}><b>{index + 1}</b><span>{step}</span></div>)}</div><details><summary>What we build</summary><p>{service.delivery.join(" · ")}</p></details></article>)}</div></div></section>
+    <section className="home-steps"><div className="wrap"><p className="section-label">Start with the right move</p><h2>See the opportunity before you automate it.</h2><div className="home-step-grid"><article><b>1</b><h3>Diagnose</h3><p>Show us where leads, appointments, retention, or payments feel stuck.</p></article><article><b>2</b><h3>Connect</h3><p>Add Google Calendar, WhatsApp, email, and your preferred payment provider.</p></article><article><b>3</b><h3>Run</h3><p>Activate the workflow and let Rasphia keep the customer journey moving.</p></article><article><b>4</b><h3>See the result</h3><p>Track customers, bookings, messages, and payments in one workspace.</p></article></div></div></section>
 
-    <section className="google-data-section" id="google-data"><div className="wrap google-data-grid"><div><p className="section-label">Google sign-in & data use</p><h2>How Rasphia uses Google data.</h2><p>Rasphia is a workspace for local businesses to manage customer enquiries, bookings, follow-ups, and payments. The Rasphia app requests Google data only for the purposes described below, and only after the user takes the relevant action.</p><p className="google-data-policy"><Link href="/privacy">Read the Rasphia Privacy Policy</Link></p></div><div className="google-data-card"><h3>Rasphia Google integrations</h3><dl><div><dt>Google Sign-In</dt><dd><strong>Scopes:</strong> <code>openid</code>, <code>email</code>, <code>profile</code>. Rasphia uses the Google account identifier, verified email address, name, and profile image to create and secure the user’s Rasphia account.</dd></div><div><dt>Google Calendar</dt><dd><strong>Scopes:</strong> <code>https://www.googleapis.com/auth/calendar.events</code> and <code>https://www.googleapis.com/auth/calendar.freebusy</code>. These are requested only when a signed-in user chooses to connect Google Calendar. Rasphia uses them to check calendar availability and create booking events for that workspace.</dd></div><div><dt>Data not requested</dt><dd>Rasphia does not request Google Drive, Gmail, Contacts, or Google Ads scopes. Calendar access is not requested during ordinary Google Sign-In.</dd></div></dl><p>Google data is used to provide the connected Rasphia feature, is not sold, and is not used for advertising.</p></div></div></section>
+    <section className="google-data-section" id="google-data"><div className="wrap google-data-grid"><div><p className="section-label">Google sign-in & data use</p><h2>Clear permission. Clear purpose.</h2><p>Rasphia uses Google Sign-In to create and secure your account. Google Calendar access is requested separately, only when you choose to connect it for availability, bookings, and customer invitations.</p><p className="google-data-policy"><Link href="/privacy">Read the Rasphia Privacy Policy</Link></p></div><div className="google-data-card"><h3>Google integrations used by Rasphia</h3><dl><div><dt>Google Sign-In</dt><dd><strong>Scopes:</strong> <code>openid</code>, <code>email</code>, and <code>profile</code> to identify the account and create a secure Rasphia workspace.</dd></div><div><dt>Google Calendar</dt><dd><strong>Scopes:</strong> <code>calendar.events</code>, <code>calendar.freebusy</code>, and <code>calendar.calendarlist.readonly</code> to list calendars, check availability, create events, and invite customers.</dd></div><div><dt>Data not requested</dt><dd>Rasphia does not request Google Drive, Gmail, Contacts, or Google Ads access.</dd></div></dl><p>Google data is not sold or used for advertising.</p></div></div></section>
 
-    <section className="dark"><div className="wrap"><p className="section-label">Why it works</p><h2>The most useful recommendation can be the money you don’t spend.</h2><div className="reasons"><article><h3>Your data, not a generic playbook</h3><p>Pricing, bookings, capacity, customers, reviews, and what is already working provide the context for every recommendation.</p></article><article><h3>AI agents that run the play</h3><p>We build agents for customer support, WhatsApp and email follow-up, review requests, local outreach, and the booking or payment handoff.</p></article><article><h3>One system, not seven subscriptions</h3><p>Keep the customer journey connected instead of handing it between a booking app, payment tool, marketing platform, and agency.</p></article></div></div></section>
+    <section className="home-final" id="start"><div className="wrap"><div className="home-final-copy"><p className="section-label">Your next best move</p><h2>Find the workflow that will pay back first.</h2><p>Get a free business diagnosis, then choose whether Rasphia should help you run the work.</p></div><InterestForm /></div></section>
 
-    <section className="steps-section"><div className="wrap"><p className="section-label">Getting started</p><h2>Fifteen minutes to see where growth is getting stuck.</h2><div className="steps"><article><b>1</b><h3>Share the picture</h3><p>Tell us about your business, your customers, and where you feel stuck.</p></article><article><b>2</b><h3>See your diagnosis</h3><p>We identify the leaks, rank the next moves, and show what is not worth doing yet.</p></article><article><b>3</b><h3>Deploy the right agents</h3><p>Choose the work to run. Rasphia builds and operates the AI agents and connected customer journeys behind it.</p></article></div></div></section>
-
-    <section id="start" className="final"><div className="wrap"><p className="section-label">Your free diagnosis</p><h2>Find the two moves that matter most right now.</h2><p className="section-intro">Tell us a little about your business. We’ll follow up with a no-pressure conversation and a clearer view of where to start.</p><InterestForm /></div></section>
     <footer><div className="wrap footer-inner"><Link className="footer-brand" href="#top" aria-label="Rasphia home"><Image src="/rasphia_logo.png" alt="Rasphia" width={34} height={34} /><span>rasph<em>ia</em></span></Link><span>© 2026 · Rasphia</span><span><Link href="/faq">FAQ</Link> · <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · GROW · RETAIN · EARN</span></div></footer>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name: "Rasphia business diagnosis and AI growth execution",
-      url: "https://rasphia.com/",
-      description: "A free business diagnosis for local service businesses, followed by optional AI-assisted execution for discoverability, customer follow-up, bookings, and payments.",
-      provider: { "@type": "Organization", name: "Rasphia", url: "https://rasphia.com" },
-      areaServed: "Worldwide",
-      audience: { "@type": "Audience", audienceType: "Local service businesses" },
-      serviceType: ["Business growth diagnosis", "Local business AI discoverability", "Customer retention automation"],
-    }) }} />
   </main>;
 }
