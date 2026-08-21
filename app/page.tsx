@@ -127,8 +127,10 @@ const nicheServices = [
 ];
 
 export default function Home() {
+  const [dashboardUrl, setDashboardUrl] = useState<string | null>(null);
+  useEffect(() => { let active = true; fetch("/api/auth/session").then((response) => response.ok ? response.json() : null).then((data: { signedIn?: boolean; dashboardUrl?: string } | null) => { if (active && data?.signedIn && data.dashboardUrl) setDashboardUrl(data.dashboardUrl); }).catch(() => undefined); return () => { active = false; }; }, []);
   return <main>
-    <nav><div className="wrap nav-inner"><a className="wordmark" href="#top">rasph<em>ia</em></a><div className="nav-actions"><a className="nav-utility" href="#services">Services</a><a className="nav-utility" href="#demo">See it in action</a><Link className="nav-utility" href="/faq">FAQ</Link><Link className="nav-utility" href="/login">Sign in</Link><Link className="button button-dark" href="/diagnosis">Get free diagnosis</Link></div></div></nav>
+    <nav><div className="wrap nav-inner"><a className="wordmark" href="#top">rasph<em>ia</em></a><div className="nav-actions"><a className="nav-utility" href="#services">Services</a><a className="nav-utility" href="#demo">See it in action</a><Link className="nav-utility" href="/faq">FAQ</Link><Link className="nav-utility" href={dashboardUrl || "/login"}>{dashboardUrl ? "Dashboard" : "Sign in"}</Link><Link className="button button-dark" href="/diagnosis">Get free diagnosis</Link></div></div></nav>
 
     <header id="top" className="hero"><div className="wrap hero-grid">
       <div className="hero-copy"><p className="eyebrow">AI agents for growth · retention · revenue</p><h1>You don’t need <span>more marketing</span>.<br />You need the <em>next move that pays back</em>.</h1><p className="lede">Rasphia diagnoses where leads, appointments, and returning customers fall through—then deploys AI agents to turn those moments into growth, retention, and revenue.</p><div className="actions"><Link className="button button-gold" href="/diagnosis">Get your free diagnosis</Link><a className="button button-outline button-play" href="#demo"><span>▶</span> See it in action</a></div><p className="note">Diagnose the leak · Deploy the AI workflow · Track the outcome</p></div>

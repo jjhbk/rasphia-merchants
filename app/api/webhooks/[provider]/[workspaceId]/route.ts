@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server";
+import postgres from "postgres";
+import { paymentConnection, verifyWebhook, type PaymentProvider } from "../../../../../lib/payments";
+
+type ProviderObject = { id?: string; payment_intent?: string; subscription?: string; status?: string; current_period_start?: number; current_period_end?: number; current_start?: number; current_end?: number; cancel_at_period_end?: boolean; cancel_at_cycle_end?: boolean };
+
+export async function POST(request: Request, { params }: { params: Promise<{ provider: string; workspaceId: string }> }) {
+  const { provider: rawProvider, workspaceId } = await params; const provider = rawProvider === "stripe" || rawProvider === "razorpay" ? rawProvider as PaymentProvider : null;
+  if (!provider || !process.env.DATABASE_URL) return new NextResponse("Not found", { status: 404 });
+  const raw = await request.text(); const sql = postgres(process.env.DATABASE_URL, { max: 1, connect_timeout: 5 });
+  try {
+    const connection = await paymentConnection(sql, workspaceId, provider); if (!connection || !verifyWebhook(provider, raw, request.headers.get(provider === "stripe" ? "stripe-signature" : "x-razorpay-signature"), connection.webhook_secret_encrypted)) return new NextResponse("Invalid signature", { status: 400 });
+    const event = JSON.parse(raw) as { id?: string; type?: string; event?: string; data?: { object?: ProviderObject }; payload?: { payment_link?: { entity?: { id?: string; payment_id?: string } }; subscription?: { entity?: ProviderObject } } };
+    const subscriptionObject: ProviderObject | undefined = provider === "stripe" ? event.data?.object : event.payload?.subscription?.entity; const subscriptionId = provider === "stripe" && eventTypeIsSubscription(event.type) ? subscriptionObject?.id : provider === "razorpay" && String(event.event || "").startsWith("subscription.") ? subscriptionObject?.id : provider === "stripe" ? event.data?.object?.subscription : null;
+    const eventId = provider === "stripe" ? event.id || "unknown" : `${event.event || "event"}:${subscriptionId || event.payload?.payment_link?.entity?.id || event.id || "unknown"}:${event.payload?.payment_link?.entity?.payment_id || ""}`; const eventType = provider === "stripe" ? event.type || "unknown" : event.event || "unknown"; const providerLinkId = provider === "stripe" ? event.data?.object?.id : event.payload?.payment_link?.entity?.id; const paid = provider === "stripe" ? eventType === "checkout.session.completed" : eventType === "payment_link.paid";
+    const inserted = await sql`insert into payment_events (workspace_id, provider, provider_event_id, event_type, payload, processed_at) values (${workspaceId}, ${provider}, ${eventId}, ${eventType}, ${sql.json(event)}, now()) on conflict (provider, provider_event_id) do nothing returning id`;
+    const providerPaymentId = provider === "stripe" ? event.data?.object?.payment_intent || null : event.payload?.payment_link?.entity?.payment_id || null;
+    if (inserted.length && providerLinkId) await sql`update payment_links set status = ${paid ? 'paid' : 'issued'}, provider_payment_id = coalesce(${providerPaymentId}, provider_payment_id), paid_at = case when ${paid} then now() else paid_at end, updated_at = now() where workspace_id = ${workspaceId} and provider = ${provider} and provider_link_id = ${providerLinkId}`;
+    if (inserted.length && subscriptionId) {
+      const status = subscriptionStatus(provider, subscriptionObject?.status); const start = subscriptionObject?.current_period_start || subscriptionObject?.current_start; const end = subscriptionObject?.current_period_end || subscriptionObject?.current_end; const cancelAtPeriodEnd = provider === "stripe" ? Boolean(subscriptionObject?.cancel_at_period_end) : Boolean(subscriptionObject?.cancel_at_cycle_end);
+      if (provider === "stripe" && eventType === "checkout.session.completed" && providerLinkId) {
+        const links: { customer_id: string; payment_offering_id: string; payment_connection_id: string }[] = await sql`select customer_id, payment_offering_id, payment_connection_id from payment_links where workspace_id = ${workspaceId} and provider = 'stripe' and provider_link_id = ${providerLinkId} limit 1`;
+        if (links[0]?.customer_id && links[0].payment_offering_id) await sql`insert into customer_subscriptions (workspace_id, customer_id, payment_offering_id, payment_connection_id, provider, provider_subscription_id, status, current_period_start, current_period_end, cancel_at_period_end) values (${workspaceId}, ${links[0].customer_id}, ${links[0].payment_offering_id}, ${links[0].payment_connection_id}, 'stripe', ${subscriptionId}, ${status}, ${start ? new Date(start * 1000) : null}, ${end ? new Date(end * 1000) : null}, ${cancelAtPeriodEnd}) on conflict (provider, provider_subscription_id) do update set status = excluded.status, current_period_start = excluded.current_period_start, current_period_end = excluded.current_period_end, cancel_at_period_end = excluded.cancel_at_period_end, updated_at = now()`;
+      } else await sql`update customer_subscriptions set status = ${status}, current_period_start = ${start ? new Date(start * 1000) : null}, current_period_end = ${end ? new Date(end * 1000) : null}, cancel_at_period_end = ${cancelAtPeriodEnd}, updated_at = now() where workspace_id = ${workspaceId} and provider = ${provider} and provider_subscription_id = ${subscriptionId}`;
+    }
+    return NextResponse.json({ received: true });
+  } catch { return new NextResponse("Webhook processing failed", { status: 500 }); } finally { await sql.end(); }
+}
+
+function eventTypeIsSubscription(type?: string) { return Boolean(type?.startsWith("customer.subscription.")); }
+function subscriptionStatus(provider: PaymentProvider, status?: string) { if (provider === "stripe") return status === "active" || status === "trialing" ? "active" : status === "past_due" || status === "unpaid" ? "past_due" : status === "canceled" || status === "incomplete_expired" ? "cancelled" : "pending"; return status === "active" ? "active" : status === "paused" || status === "halted" ? "paused" : status === "cancelled" || status === "completed" || status === "expired" ? status === "completed" ? "completed" : "cancelled" : "pending"; }

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase().slice(0, 254) : "";
   const phone = typeof body.phone === "string" ? body.phone.trim().slice(0, 40) : "";
   const note = typeof body.note === "string" ? body.note.trim().slice(0, 1000) : "";
-  if (!slug || !serviceId || !startsAt || Number.isNaN(startsAt.valueOf()) || !name || !/^\S+@\S+\.\S+$/.test(email)) return NextResponse.json({ error: "Choose a service and time, then add your name and email." }, { status: 422 });
+  if (!slug || !serviceId || !startsAt || Number.isNaN(startsAt.valueOf()) || !name || !/^\S+@\S+\.\S+$/.test(email) || !phone) return NextResponse.json({ error: "Choose a service and time, then add your name, email, and phone number." }, { status: 422 });
   if (startsAt.getTime() < Date.now() + 5 * 60_000 || startsAt.getTime() > Date.now() + 366 * 24 * 60 * 60_000) return NextResponse.json({ error: "Choose an appointment time within the next year." }, { status: 422 });
   if (!process.env.DATABASE_URL) return NextResponse.json({ error: "Bookings are not configured yet." }, { status: 503 });
   const sql = postgres(process.env.DATABASE_URL, { max: 1, connect_timeout: 5 });

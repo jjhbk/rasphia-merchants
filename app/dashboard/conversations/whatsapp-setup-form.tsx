@@ -1,0 +1,10 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+
+export function WhatsAppSetupForm({ initialKeyword, phoneNumber, configured }: { initialKeyword: string; phoneNumber: string; configured: boolean }) {
+  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle"); const [error, setError] = useState(""); const [keyword, setKeyword] = useState(initialKeyword);
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setStatus("saving"); setError(""); const response = await fetch("/api/integrations/whatsapp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ intakeKeyword: keyword, enabled: true }) }); const data = await response.json(); if (!response.ok) { setStatus("error"); setError(data.error || "We couldn’t save WhatsApp routing."); return; } setKeyword(data.intakeKeyword); setStatus("success"); }
+  const link = phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, "")}?text=${encodeURIComponent(`Rasphia ${keyword}`)}` : "";
+  return <section className="payment-offerings"><p className="section-label">Shared Rasphia WhatsApp</p><h2>Route new enquiries safely.</h2><p>Give customers this link. Its prefilled message identifies your business before their first message reaches the shared account.</p><form className="payment-connect-form" onSubmit={submit}><label>Routing keyword<input value={keyword} onChange={(event) => setKeyword(event.target.value)} required minLength={2} /></label><button className="button button-gold" disabled={status === "saving" || !configured}>{status === "saving" ? "Saving…" : "Enable WhatsApp routing"}</button>{!configured && <p className="form-error">The Rasphia WhatsApp account is not configured on this deployment yet.</p>}{status === "success" && link && <p className="form-success">Ready to share: <a href={link} target="_blank" rel="noreferrer">Open your WhatsApp enquiry link</a></p>}{error && <p className="form-error">{error}</p>}</form></section>;
+}
