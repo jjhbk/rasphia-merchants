@@ -11,7 +11,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
   if (!provider || !process.env.DATABASE_URL) return new NextResponse("Not found", { status: 404 });
   const raw = await request.text(); const sql = postgres(process.env.DATABASE_URL, { max: 1, connect_timeout: 5 });
   try {
-    const connection = await paymentConnection(sql, workspaceId, provider); if (!connection || !verifyWebhook(provider, raw, request.headers.get(provider === "stripe" ? "stripe-signature" : "x-razorpay-signature"), connection.webhook_secret_encrypted)) return new NextResponse("Invalid signature", { status: 400 });
+    const connection = await paymentConnection(sql, workspaceId, provider);
+    const signatureHeader = request.headers.get(provider === "stripe" ? "stripe-signature" : "x-razorpay-signature");
+    if (!connection) {
+      console.error("Payment webhook rejected: no active connection", { provider, workspaceId });
+      return new NextResponse("No active payment connection for this workspace", { status: 400 });
+    }
+    if (!verifyWebhook(provider, raw, signatureHeader, connection.webhook_secret_encrypted)) {
+      console.error("Payment webhook rejected: invalid signature", { provider, workspaceId, signaturePresent: Boolean(signatureHeader), bodyBytes: Buffer.byteLength(raw) });
+      return new NextResponse("Invalid webhook signature", { status: 400 });
+    }
     const event = JSON.parse(raw) as { id?: string; type?: string; event?: string; data?: { object?: ProviderObject }; payload?: { payment_link?: { entity?: { id?: string; payment_id?: string } }; subscription?: { entity?: ProviderObject } } };
     const subscriptionObject: ProviderObject | undefined = provider === "stripe" ? event.data?.object : event.payload?.subscription?.entity; const subscriptionId = provider === "stripe" && eventTypeIsSubscription(event.type) ? subscriptionObject?.id : provider === "razorpay" && String(event.event || "").startsWith("subscription.") ? subscriptionObject?.id : provider === "stripe" ? event.data?.object?.subscription : null;
     const eventId = provider === "stripe" ? event.id || "unknown" : `${event.event || "event"}:${subscriptionId || event.payload?.payment_link?.entity?.id || event.id || "unknown"}:${event.payload?.payment_link?.entity?.payment_id || ""}`; const eventType = provider === "stripe" ? event.type || "unknown" : event.event || "unknown"; const providerLinkId = provider === "stripe" ? event.data?.object?.id : event.payload?.payment_link?.entity?.id; const paymentLinkStatus = paymentLinkEventStatus(provider, eventType);

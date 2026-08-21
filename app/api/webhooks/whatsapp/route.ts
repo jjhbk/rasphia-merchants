@@ -43,10 +43,20 @@ async function recordInbound(sql: postgres.Sql, message: IncomingMessage, custom
   const inserted = await sql`insert into conversation_messages (workspace_id, conversation_id, customer_id, channel, direction, provider_message_id, message_type, body, metadata) values (${workspaceId}, ${conversations[0].id}, ${customers[0].id}, 'whatsapp', 'inbound', ${message.id}, ${message.type || 'text'}, ${body || null}, ${sql.json(message)}) on conflict (channel, provider_message_id) do nothing returning id`;
   if (!inserted.length) return;
   await sql`insert into customer_events (workspace_id, customer_id, event_type, source, payload) values (${workspaceId}, ${customers[0].id}, 'whatsapp_message_received', 'whatsapp', ${sql.json({ conversationId: conversations[0].id, messageId: message.id })})`;
-  if (existing.length || !whatsappConfigured()) return;
+  // A customer-initiated message opens (or refreshes) WhatsApp's customer
+  // service window. Within that window we can reply with ordinary text. The
+  // old `existing.length` guard meant only the first message in a conversation
+  // was answered, so follow-up questions were recorded but never replied to.
+  if (!body || !whatsappConfigured()) return;
   const businesses = await sql<{ name: string; booking_slug: string | null }[]>`select w.name, ws.booking_slug from workspaces w join workspace_settings ws on ws.workspace_id = w.id where w.id = ${workspaceId} limit 1`;
   const business = businesses[0]; if (!business) return;
-  const origin = process.env.NEXT_PUBLIC_APP_URL || "https://www.rasphia.com"; const reply = `Hi${customerName ? ` ${customerName.split(" ")[0]}` : ""}, thanks for contacting ${business.name}. A team member will be with you shortly.${business.booking_slug ? ` To request an appointment now, use ${origin}/book/${business.booking_slug}.` : ""}`;
+  const origin = process.env.NEXT_PUBLIC_APP_URL || "https://www.rasphia.com";
+  const firstName = customerName ? ` ${customerName.split(" ")[0]}` : "";
+  const lowerBody = body.toLowerCase();
+  const bookingIntent = /book|appointment|schedule|availability|slot|consultation/.test(lowerBody);
+  const reply = bookingIntent && business.booking_slug
+    ? `Hi${firstName}, thanks for reaching out to ${business.name}. You can request an appointment here: ${origin}/book/${business.booking_slug}. If you have a question about a service, reply here and our team will help.`
+    : `Hi${firstName}, thanks for contacting ${business.name}. We received your message and our team will get back to you shortly. You can reply here with any additional details${business.booking_slug ? `, or request an appointment at ${origin}/book/${business.booking_slug}` : ""}.`;
   try {
     const providerMessageId = await sendWhatsAppText({ to: phone, body: reply });
     await sql`insert into conversation_messages (workspace_id, conversation_id, customer_id, channel, direction, provider_message_id, message_type, body, status, metadata) values (${workspaceId}, ${conversations[0].id}, ${customers[0].id}, 'whatsapp', 'outbound', ${providerMessageId}, 'text', ${reply}, 'sent', ${sql.json({ workflow: 'inbound_acknowledgement' })})`;
