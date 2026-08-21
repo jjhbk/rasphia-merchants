@@ -7,10 +7,11 @@ export const metadata: Metadata = {
   description: "Rasphia diagnoses where local service businesses are losing momentum, then helps run the moves that matter most.",
   alternates: { canonical: "/" },
   icons: {
-    icon: [{ url: "/favicon.ico", type: "image/x-icon" }, { url: "/icon128.png", type: "image/png", sizes: "128x128" }],
-    shortcut: "/favicon.ico",
-    apple: "/icon128.png",
+    icon: [{ url: "/rasphia_logo.png", type: "image/png", sizes: "1024x1024" }, { url: "/favicon.ico", type: "image/x-icon" }],
+    shortcut: "/rasphia_logo.png",
+    apple: "/rasphia_logo.png",
   },
+  openGraph: { title: "Rasphia — Find the next move that pays back", description: "AI agents for local-business growth, retention, and revenue.", images: [{ url: "/rasphia_logo.png", width: 1024, height: 1024, alt: "Rasphia" }] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     "@type": "Organization",
     name: "Rasphia",
     url: "https://rasphia.com",
+    logo: "https://rasphia.com/rasphia_logo.png",
     description: "Rasphia diagnoses growth, retention, and revenue opportunities for local service businesses, then helps execute the highest-priority moves with AI agents.",
     sameAs: [],
   };
