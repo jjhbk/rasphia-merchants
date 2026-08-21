@@ -4,6 +4,7 @@ import { sendBookingEmails } from "../../../../lib/booking-email";
 import { createCalendarBooking } from "../../../../lib/google-calendar";
 import { sendWhatsAppTemplate, whatsappConfigured } from "../../../../lib/whatsapp";
 import { queueActiveWorkflowUpdate } from "../../../../lib/workflow-runner";
+import { normalizeTimezone } from "../../../../lib/timezones";
 
 type TemplateReference = { name: string; language: string };
 type TemplateConfig = { booking?: TemplateReference };
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   try {
     const result = await sql.begin(async (tx) => {
       const workspaces = await tx<{ id: string; name: string; timezone: string; business_email: string | null; settings: { mobile?: string } }[]>`select w.id, w.name, w.timezone, ws.business_email, ws.settings from workspaces w join workspace_settings ws on ws.workspace_id = w.id where w.slug = ${slug} and w.onboarding_status = 'complete' limit 1`;
-      const workspace = workspaces[0]; if (!workspace || !workspace.business_email) throw new Error("This booking page is unavailable.");
+      const workspace = workspaces[0]; if (!workspace || !workspace.business_email) throw new Error("This booking page is unavailable."); workspace.timezone = normalizeTimezone(workspace.timezone);
       const calendars = await tx`select 1 from google_calendar_connections where workspace_id = ${workspace.id} and selected_calendar_id is not null limit 1`;
       if (!calendars.length) throw new Error("This business is not accepting online bookings right now.");
       const whatsapp = await tx<{ template_config: TemplateConfig }[]>`select template_config from whatsapp_settings where workspace_id = ${workspace.id} and enabled = true limit 1`;

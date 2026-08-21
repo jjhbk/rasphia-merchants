@@ -3,3 +3,11 @@ export const SUPPORTED_TIMEZONES = [
 ] as const;
 
 export const isSupportedTimezone = (value: string) => SUPPORTED_TIMEZONES.some(([zone]) => zone === value);
+
+const LEGACY_TIMEZONES: Record<string, string> = { India: "Asia/Kolkata", IST: "Asia/Kolkata", "Indian Standard Time": "Asia/Kolkata", "Asia/Calcutta": "Asia/Kolkata" };
+
+export function normalizeTimezone(value: string | null | undefined) {
+  if (!value) return "UTC";
+  const normalized = LEGACY_TIMEZONES[value] || value;
+  return isSupportedTimezone(normalized) ? normalized : "UTC";
+}
