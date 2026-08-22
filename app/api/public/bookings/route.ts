@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import postgres from "postgres";
 import { sendBookingEmails } from "../../../../lib/booking-email";
 import { createCalendarBooking } from "../../../../lib/google-calendar";
-import { sendWhatsAppTemplate, whatsappConfigured } from "../../../../lib/whatsapp";
+import { sendWhatsAppTemplate, sendWhatsAppText, whatsappConfigured } from "../../../../lib/whatsapp";
 import { queueActiveWorkflowUpdate } from "../../../../lib/workflow-runner";
 import { normalizeTimezone } from "../../../../lib/timezones";
 
@@ -34,7 +34,6 @@ export async function POST(request: Request) {
       if (!calendars.length) throw new Error("This business is not accepting online bookings right now.");
       const whatsapp = await tx<{ template_config: TemplateConfig }[]>`select template_config from whatsapp_settings where workspace_id = ${workspace.id} and enabled = true limit 1`;
       const bookingTemplate = whatsapp[0]?.template_config?.booking;
-      if (!bookingTemplate) throw new Error("This business is not accepting online bookings right now.");
       const services = await tx<{ id: string; name: string; duration_minutes: number }[]>`select id, name, duration_minutes from booking_services where id = ${serviceId} and workspace_id = ${workspace.id} and active = true limit 1`;
       const service = services[0]; if (!service) throw new Error("That service is unavailable.");
       const existingCustomers = await tx<{ id: string }[]>`select id from customers where workspace_id = ${workspace.id} and (lower(email) = lower(${email}) or phone = ${phone}) order by case when lower(email) = lower(${email}) then 0 else 1 end limit 1`;
@@ -55,8 +54,17 @@ export async function POST(request: Request) {
     let whatsappError: string | null = null;
     try {
       const date = new Intl.DateTimeFormat("en", { dateStyle: "full", timeStyle: "short", timeZone: result.workspace.timezone }).format(startsAt);
-      whatsappMessageId = await sendWhatsAppTemplate({ to: phone, template: result.bookingTemplate.name, language: result.bookingTemplate.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: name }, { type: "text", parameter_name: "business_name", text: result.workspace.name }, { type: "text", parameter_name: "update_message", text: `${bookingStatus === "confirmed" ? "Your booking is confirmed" : "Your booking request is received"} for ${result.service.name} on ${date}.` }] }] });
-      if (result.workspace.settings?.mobile && result.workspace.settings.mobile.replace(/\D/g, "") !== phone.replace(/\D/g, "")) merchantWhatsappMessageId = await sendWhatsAppTemplate({ to: result.workspace.settings.mobile, template: result.bookingTemplate.name, language: result.bookingTemplate.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: name }, { type: "text", parameter_name: "business_name", text: result.workspace.name }, { type: "text", parameter_name: "update_message", text: `New booking from ${name} for ${result.service.name} on ${date}.` }] }] });
+      const customerMessage = `${bookingStatus === "confirmed" ? "Your booking is confirmed" : "Your booking request is received"} for ${result.service.name} on ${date}.`;
+      const usableBookingTemplate = result.bookingTemplate && result.bookingTemplate.name !== "hello_world" ? result.bookingTemplate : null;
+      whatsappMessageId = usableBookingTemplate
+        ? await sendWhatsAppTemplate({ to: phone, template: usableBookingTemplate.name, language: usableBookingTemplate.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: name }, { type: "text", parameter_name: "business_name", text: result.workspace.name }, { type: "text", parameter_name: "update_message", text: customerMessage }] }] })
+        : await sendWhatsAppText({ to: phone, body: customerMessage });
+      if (result.workspace.settings?.mobile && result.workspace.settings.mobile.replace(/\D/g, "") !== phone.replace(/\D/g, "")) {
+        const merchantMessage = `New booking from ${name} for ${result.service.name} on ${date}.`;
+        merchantWhatsappMessageId = usableBookingTemplate
+          ? await sendWhatsAppTemplate({ to: result.workspace.settings.mobile, template: usableBookingTemplate.name, language: usableBookingTemplate.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: name }, { type: "text", parameter_name: "business_name", text: result.workspace.name }, { type: "text", parameter_name: "update_message", text: merchantMessage }] }] })
+          : await sendWhatsAppText({ to: result.workspace.settings.mobile, body: merchantMessage });
+      }
     } catch (error) { whatsappError = error instanceof Error ? error.message : "WhatsApp booking update could not be sent."; }
     await sql`insert into outbound_messages (workspace_id, customer_id, booking_id, channel, recipient, template_key, provider_message_id, status, metadata, sent_at) values (${result.workspace.id}, ${result.customerId}, ${result.booking.id}, 'whatsapp', ${phone}, 'booking_update', ${whatsappMessageId}, ${whatsappMessageId ? 'sent' : 'failed'}, ${sql.json({ error: whatsappError })}, ${whatsappMessageId ? new Date() : null})`;
     if (merchantWhatsappMessageId && result.workspace.settings?.mobile) await sql`insert into outbound_messages (workspace_id, booking_id, channel, recipient, template_key, provider_message_id, status, metadata, sent_at) values (${result.workspace.id}, ${result.booking.id}, 'whatsapp', ${result.workspace.settings.mobile}, 'booking_update_merchant', ${merchantWhatsappMessageId}, 'sent', ${sql.json({ bookingId: result.booking.id })}, now())`;

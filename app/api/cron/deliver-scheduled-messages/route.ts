@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import postgres from "postgres";
 import { sendCustomerEmail } from "../../../../lib/customer-message";
-import { sendWhatsAppTemplate } from "../../../../lib/whatsapp";
+import { sendWhatsAppTemplate, sendWhatsAppText } from "../../../../lib/whatsapp";
 
 type QueueItem = { id: string; workspace_id: string; customer_id: string; channel: "email" | "whatsapp"; purpose: "update" | "payment_link"; body: string; payment_link_id: string | null; name: string; email: string | null; phone: string | null; workspace_name: string; workspace_slug: string; template_config: { payment?: { name: string; language: string }; followUp?: { name: string; language: string } } | null; payment_url: string | null };
 
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
         const body = item.payment_url ? `${item.body}\n\nPay securely: ${item.payment_url}` : item.body;
         let providerId: string | null;
         if (item.channel === "email") { if (!item.email) throw new Error("This customer has no email address."); providerId = await sendCustomerEmail({ businessName: item.workspace_name, senderSlug: item.workspace_slug, to: item.email, customerName: item.name, body }); }
-        else { if (!item.phone) throw new Error("This customer has no WhatsApp phone number."); const template = item.purpose === "payment_link" ? item.template_config?.payment : item.template_config?.followUp; if (!template) throw new Error("No approved WhatsApp template is selected for this update."); providerId = await sendWhatsAppTemplate({ to: item.phone, template: template.name, language: template.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: item.name || "there" }, { type: "text", parameter_name: "business_name", text: item.workspace_name }, { type: "text", parameter_name: "update_message", text: body }] }] }); }
+        else { if (!item.phone) throw new Error("This customer has no WhatsApp phone number."); const selectedTemplate = item.purpose === "payment_link" ? item.template_config?.payment : item.template_config?.followUp; const template = selectedTemplate?.name === "hello_world" ? null : selectedTemplate; providerId = template ? await sendWhatsAppTemplate({ to: item.phone, template: template.name, language: template.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: item.name || "there" }, { type: "text", parameter_name: "business_name", text: item.workspace_name }, { type: "text", parameter_name: "update_message", text: body }] }] }) : await sendWhatsAppText({ to: item.phone, body }); }
         await sql`update scheduled_customer_messages set status = 'sent', provider_message_id = ${providerId}, sent_at = now(), updated_at = now() where id = ${item.id}`;
         await sql`insert into outbound_messages (workspace_id, customer_id, channel, recipient, template_key, provider_message_id, status, metadata, sent_at) values (${item.workspace_id}, ${item.customer_id}, ${item.channel}, ${item.channel === 'email' ? item.email! : item.phone!}, ${item.purpose}, ${providerId}, 'sent', ${sql.json({ scheduledMessageId: item.id })}, now())`;
         const actions = await sql<{ workflow_run_id: string }[]>`update workflow_actions set status = 'sent', executed_at = now() where payload->>'scheduledMessageId' = ${item.id} returning workflow_run_id`;
