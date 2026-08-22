@@ -54,13 +54,15 @@ export async function POST(request: Request) {
     let whatsappError: string | null = null;
     try {
       const date = new Intl.DateTimeFormat("en", { dateStyle: "full", timeStyle: "short", timeZone: result.workspace.timezone }).format(startsAt);
-      const customerMessage = `${bookingStatus === "confirmed" ? "Your booking is confirmed" : "Your booking request is received"} for ${result.service.name} on ${date}.`;
+      const customerMessage = bookingStatus === "confirmed"
+        ? `Your appointment with ${result.workspace.name} is confirmed. Service: ${result.service.name}. Date and time: ${date}. Please arrive a few minutes early. Reply here if you need to request a change.`
+        : `Your booking request for ${result.service.name} with ${result.workspace.name} was received for ${date}. The business will confirm the time shortly. Reply here if you have questions.`;
       const usableBookingTemplate = result.bookingTemplate && result.bookingTemplate.name !== "hello_world" ? result.bookingTemplate : null;
       whatsappMessageId = usableBookingTemplate
         ? await sendWhatsAppTemplate({ to: phone, template: usableBookingTemplate.name, language: usableBookingTemplate.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: name }, { type: "text", parameter_name: "business_name", text: result.workspace.name }, { type: "text", parameter_name: "update_message", text: customerMessage }] }] })
         : await sendWhatsAppText({ to: phone, body: customerMessage });
       if (result.workspace.settings?.mobile && result.workspace.settings.mobile.replace(/\D/g, "") !== phone.replace(/\D/g, "")) {
-        const merchantMessage = `New booking from ${name} for ${result.service.name} on ${date}.`;
+        const merchantMessage = `New booking request from ${name}. Service: ${result.service.name}. Requested time: ${date}. Customer email: ${email}. ${bookingStatus === "confirmed" ? "The appointment is on your calendar." : "Please review and confirm the request."}`;
         merchantWhatsappMessageId = usableBookingTemplate
           ? await sendWhatsAppTemplate({ to: result.workspace.settings.mobile, template: usableBookingTemplate.name, language: usableBookingTemplate.language, components: [{ type: "body", parameters: [{ type: "text", parameter_name: "customer_name", text: name }, { type: "text", parameter_name: "business_name", text: result.workspace.name }, { type: "text", parameter_name: "update_message", text: merchantMessage }] }] })
           : await sendWhatsAppText({ to: result.workspace.settings.mobile, body: merchantMessage });
